@@ -42,25 +42,67 @@ def remove_outliers_by_z_score(data):
             score = d[1] / d[0]
         x_y_ration.append(score)
 
-    # x_data = [i[0] for i in data]
+    x_data = [i[0] for i in data]
+    y_data = [i[1] for i in data]
+
+    # check_gaussian_dsitrubution(x_y_ration)
 
     mean_val_x = np.mean(np.asanyarray(x_y_ration, dtype=np.float64))
     std_val_x = np.std(np.asanyarray(x_y_ration, dtype=np.float64))
 
+    # print(mean_val_x)
+    # print(std_val_x)
+
+
     #imas sada izracunate Z_score-ove
     x_data_z_scores = z_score(x_y_ration, mean_val_x, std_val_x)
+
+    check_gaussian_dsitrubution(x_data_z_scores)
     #
     # print(np.max(x_data_z_scores))
     # print(np.min(x_data_z_scores))
 
     for i in range(len(x_data_z_scores)):
-        if abs(x_data_z_scores[i]) <= 1.9:
+        if abs(x_data_z_scores[i]) <= 1.42:
             data_without_outliers.append(data[i])
 
+    print(len(data_without_outliers))
     return np.asarray(data_without_outliers, dtype=np.int16)
 
 def z_score(data,  mean_val, std_val):
     return [(d - mean_val) / std_val for d in data]
+
+# da proveri da li values ima gausuvo raspodelu
+def check_gaussian_dsitrubution(values):
+
+    max = np.max(values)
+    min = np.min(values)
+
+    mapa = {}
+    retval = []
+    interval_size = (max-min)/10
+    print(max)
+    print(min)
+    print(interval_size)
+    print("------------")
+    intervl_start = min
+    while intervl_start < max:
+        a = []
+        for v in values:
+            if v >= intervl_start and v < intervl_start + interval_size:
+                a.append(v)
+        retval.append(((intervl_start, intervl_start + interval_size), len(a)))
+        intervl_start += interval_size
+
+    x = [c[0][1] for c in retval]
+    y = [c[1] for c in retval]
+    plt.bar(x, y)
+    plt.show()
+
+    print(retval)
+
+    # mean_val_x = np.mean(np.asanyarray(values, dtype=np.float64))
+    # std_val_x = np.std(np.asanyarray(values, dtype=np.float64))
 
 
 def stratification(data, test_size=0.1):
@@ -172,7 +214,7 @@ if __name__ == '__main__':
     y_train = [i[1] for i in train]
 
     # plt.scatter(x_train, y_train)
-    # plt.show()
+
 
 
     mean_val_x = np.mean(np.asanyarray(x_train, dtype=np.float64))
@@ -180,12 +222,18 @@ if __name__ == '__main__':
 
     x_train = z_score(x_train, mean_val_x, std_val_x)
 
-    theta = fit_batch_gd_mse(x_train, y_train, 2, 30000, 0.001)
-    # theta = fit_normal_equasion(x_train, y_train, 2)
+    # theta = fit_batch_gd_mse(x_train, y_train, 2, 30000, 0.001)
+    theta = fit_normal_equasion(x_train, y_train, 2)
 
     x_test = [i[0] for i in test_data]
     y_test = [i[1] for i in test_data]
 
     x_test = z_score(x_test, mean_val_x, std_val_x)
     y_predict = [predict(x, theta) for x in x_test]
+
+    x = np.linspace(2000, 5000, 1000)
+    x_z = z_score(x, mean_val_x, std_val_x)
+    y_pred = [predict(t, theta) for t in x_z]
+    # plt.plot(x, y_pred)
+    # plt.show()
     print(calculate_rmse(y_test, y_predict))
