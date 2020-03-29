@@ -1,8 +1,8 @@
 import sys
 
 import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
+# import matplotlib
+# import matplotlib.pyplot as plt
 import pandas as pd
 import math
 
@@ -222,7 +222,8 @@ if __name__ == '__main__':
 
     x_train = z_score(x_train, mean_val_x, std_val_x)
 
-    # theta = fit_batch_gd_mse(x_train, y_train, 2, 30000, 0.001)
+
+    # theta = fit_batch_gd_mse(x_train, y_train, 2, 40000, 0.001)
     theta = fit_normal_equasion(x_train, y_train, 2)
 
     x_test = [i[0] for i in test_data]
