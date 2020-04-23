@@ -116,7 +116,7 @@ def lasso_coordinate_descent(x, y, step=0.1, l=5):
     return theta
 
 
-def ridge(x, y, alpha=0.001, max_iters=1000, l=1):
+def ridge(x, y, alpha=0.001, max_iters=10000, l=0.2):
     N = len(x)
     D = len(x[0])
     theta = [1.0] * D
@@ -144,27 +144,41 @@ if __name__ == '__main__':
     # view_data(train_data, test_data)
     #label encodin i one hot encoding
     train_data = categorical_data(train_data, label_encoding)
+    test_data = categorical_data(test_data, label_encoding)
 
     print(train_data.columns.values)
     train_data = train_data.astype('float64')
     y_train = train_data['plata'].to_numpy()
     del train_data['plata']
+    del train_data['godina_doktor']
+    del train_data['godina_iskustva']
 
     # normalizadija i ridge
-    # mean_val = mean_val_nor(train_data)
-    # std_val = std_val_nor(train_data)
-    # train_data = z_score_normalization(train_data, mean_val, std_val)
-    # x_train = train_data.to_numpy()
-    # theta = ridge(x_train, y_train)
-    # print(theta)
-
-
-    #normailzacija i lasso
-    d_norm = d_normalization(train_data)
-    train_data = normalization(train_data, d_norm)
+    mean_val = mean_val_nor(train_data)
+    std_val = std_val_nor(train_data)
+    train_data = z_score_normalization(train_data, mean_val, std_val)
     x_train = train_data.to_numpy()
-    theta = lasso_coordinate_descent(x_train, y_train, step=0.001, l=1)
+    theta = ridge(x_train, y_train)
     print(theta)
+
+    test_data = test_data.astype('float64')
+    y_test = test_data['plata'].to_numpy()
+    del test_data['plata']
+    del test_data['godina_doktor']
+    del test_data['godina_iskustva']
+
+    test_data = z_score_normalization(test_data, mean_val, std_val)
+    x_test = test_data.to_numpy()
+    x = []
+    for i in x_test:
+        x.append(predict(i, theta))
+    print(calculate_rmse(y_test, x))
+    #normailzacija i lasso
+    # d_norm = d_normalization(train_data)
+    # train_data = normalization(train_data, d_norm)
+    # x_train = train_data.to_numpy()
+    # theta = lasso_coordinate_descent(x_train, y_train, step=0.001, l=1)
+    # print(theta)
 
     ## iteracije da se utvred koja obelezja ne trebaju
     # x = []
