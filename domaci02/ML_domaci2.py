@@ -150,6 +150,43 @@ def ridge(x, y, alpha=0.0483, max_iters=500, l=0.000001):
 
     return theta
 
+def knn(train_data, xq, k=3):
+    if k > len(train_data):
+        return 0
+
+    yq = 0
+    distances = []
+    plate = []
+
+    # prodjemo kroz ceo skup podataka
+    # TODO: mogu se dodati razlicite tezine za svaku zagradu
+    # TODO: kako hendlati kategoricka obelezja ?
+    for index, x in train_data.iterrows():
+        d = math.sqrt((x['godina_doktor'] - xq['godina_doktor'])**2 + (x['godina_iskustva'] - xq['godina_iskustva'])**2 + (x['zvanje'] - xq['zvanje'])**2 + (x['pol_Male'] - xq['pol_Male'])**2 + (x['oblast_A'] - xq['oblast_A'])**2)
+        distances.append(d)
+        plate.append(x['plata'])
+
+    # pronadjemo k najmanjih distanci
+    najblize_plate = []
+
+    for i in range(k):
+        min_distance = min(distances)
+        min_distance_index = distances.index(min_distance)
+        
+        # min_distances = train_data.iloc[[min_distance_index]]
+        distances[min_distance_index] = math.inf
+
+        najblize_plate.append(plate[min_distance_index])
+
+    # nadjemo srednju vrednost y od tih k najmanjih distanci
+    suma = 0
+    for i in najblize_plate:
+        #print("OVO JE I", i)
+        suma += i
+
+    yq = suma / k
+
+    return yq
 
 if __name__ == '__main__':
     trainPath = 'dataset/train.csv'
@@ -194,6 +231,35 @@ if __name__ == '__main__':
     for i in x_test:
         x.append(predict(i, theta))
     print(calculate_rmse(y_test, x))
+
+
+    ####### KNN ##########
+    ## OSTALO ZAKOMENTARISATI ##
+    trainPath = '/content/drive/My Drive/dataset/train.csv'
+    testPath = '/content/drive/My Drive/dataset/test_preview.csv'
+
+    train_data = pd.read_csv(trainPath)
+    test_data = pd.read_csv(testPath)
+
+    # view_data(train_data, test_data)
+    #label encodin i one hot encoding
+    train_data = categorical_data(train_data, label_encoding)
+    test_data = categorical_data(test_data, label_encoding)
+
+    train_data = train_data.astype('float64')
+    test_data = test_data.astype('float64')
+
+    predicted = []
+
+    for index, x in test_data.iterrows():
+        result = knn(train_data, x, k=200)
+        predicted.append(result)
+
+    rmse = calculate_rmse(test_data['plata'].to_numpy(), predicted)
+    print(rmse)
+
+    ######################
+
     #normailzacija i lasso
     # d_norm = d_normalization(train_data)
     # train_data = normalization(train_data, d_norm)
