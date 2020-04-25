@@ -38,10 +38,14 @@ def one_hot_encoding(data, name):
 
 
 def label_encoding(data, name):
+
+    # za zvanje ide Ordinal Encoding
     if name == "zvanje":
-        data[name] = [0 if d == "Prof" else (1 if d == "AssocProf" else 2) for d in data[name]]
+        data[name] = [4.5 if d == "Prof" else (1.5 if d == "AssocProf" else 1) for d in data[name]]
     elif name == "pol":
         data[name] = [1 if d == "Male" else 0 for d in data[name]]
+
+    # treba da ide cist one-hot-encoding..
     elif name == "oblast":
         data[name] = [1 if d == "A" else 0 for d in data[name]]
     return data
@@ -112,7 +116,8 @@ def min_max_normalization(data, mins, maxs):
         if col == "pol" or col == "oblast":  # fora je su samo 0 ili 1 pa ne treba
             continue
         for idx, row in enumerate(data[col]):
-            data.at[idx, col] = (row - mins[i]) / maxs[i] - mins[i]
+            # maxs[i] - mins[i] ---> nije bilo u zagradi...
+            data.at[idx, col] = (row - mins[i]) / (maxs[i] - mins[i])
     return data
 
 
@@ -284,34 +289,34 @@ if __name__ == '__main__':
     # make_quartile_plot(train_data, "godina_iskustva")
     # make_bar_chart(train_data, "godina_iskustva", 5)
 
-    view_data(train_data, test_data)
+    # view_data(train_data, test_data)
     
-    # # #label encoding
-    # train_data = categorical_data(train_data, label_encoding)
-    # test_data = categorical_data(test_data, label_encoding)
-    #
-    # # print(train_data.columns.values)
-    # # train_validation(train_data, test_data)
-    #
-    # train_data = train_data.astype('float64')
-    # y_train = train_data['plata'].to_numpy()
-    # del train_data['plata']
+    #label encoding
+    train_data = categorical_data(train_data, label_encoding)
+    test_data = categorical_data(test_data, label_encoding)
+
+    # print(train_data.columns.values)
+    # train_validation(train_data, test_data)
+
+    train_data = train_data.astype('float64')
+    y_train = train_data['plata'].to_numpy()
+    del train_data['plata']
     # # zasto su izbacena ova 2?
-    # # del train_data['godina_doktor']
-    # # del train_data['godina_iskustva']
+    # del train_data['godina_doktor']
+    # del train_data['godina_iskustva']
+
+    # print(train_data[0:10])
     #
-    # # print(train_data[0:10])
-    #
-    # # # Z-SCORE i ridge
-    # # mean_val = mean_val_nor(train_data)
-    # # std_val = std_val_nor(train_data)
-    # # train_data = z_score_normalization(train_data, mean_val, std_val)
-    #
-    # # MIN-MAX normalizacija i ridge
+    # # Z-SCORE i ridge
+    # mean_val = mean_val_nor(train_data)
+    # std_val = std_val_nor(train_data)
+    # train_data = z_score_normalization(train_data, mean_val, std_val)
+
+    # MIN-MAX normalizacija i ridge
     # min_val = min_values(train_data)
     # max_val = max_values(train_data)
     # train_data = min_max_normalization(train_data, min_val, max_val)
-    #
+
     #
     # x_train = train_data.to_numpy()
     # theta = ridge(x_train, y_train)
@@ -331,25 +336,29 @@ if __name__ == '__main__':
     # print(calculate_rmse(y_test, x))
     
     #normailzacija i lasso
-    # d_norm = d_normalization(train_data)
-    # train_data = normalization(train_data, d_norm)
-    # x_train = train_data.to_numpy()
+    d_norm = d_normalization(train_data)
+    train_data = normalization(train_data, d_norm)
+    x_train = train_data.to_numpy()
     # theta = lasso_coordinate_descent(x_train, y_train, step=0.001, l=1)
     # print(theta)
 
     ## iteracije da se utvred koja obelezja ne trebaju
-    # x = []
-    # y = []
-    # for i in range(1, 100000, 100):
-    #     x.append(i)
-    #     y.append(lasso_coordinate_descent(x_train,y_train, l=i))
-    # y = np.array(y).transpose()
-    # print(y)
-    # x = [x]*len(y)
-    # print(x)
-    # for i in range(len(y)):
-    #     plt.plot(x[i], y[i], i)
-    # plt.show()
+    x = []
+    y = []
+    for i in range(1, 100000, 100):
+        x.append(i)
+        y.append(lasso_coordinate_descent(x_train, y_train, l=i))
+    y = np.array(y).transpose()
+    print(y)
+    x = [x]*len(y)
+    print(x)
+    for i in range(len(y)):
+        plt.plot(x[i], y[i], i)
+    plt.show()
+
+
+
+
 
     # iteracije da se utvrdi alpha za ridge
     # x = []
