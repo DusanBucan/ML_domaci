@@ -150,6 +150,24 @@ def ridge(x, y, alpha=0.0483, max_iters=500, l=0.000001):
 
     return theta
 
+def ridge2(x, y, alpha=0.1, step=0.001, l=0.1):
+    N = len(x)
+    D = len(x[0])
+    theta = [1.0] * D
+    theta = np.asarray(theta, dtype=np.float64)
+
+    while True:
+        old_theta = theta.copy()
+        for j in range(D):
+            suma = 0
+            for i in range(N):
+                y_predict = predict(x[i], theta)
+                suma += (y_predict - y[i]) * x[i][j]
+            theta[j] = theta[j] * (1 - alpha * l) - alpha / N * suma
+        print(sum(abs(theta-old_theta)))
+        if sum(abs(theta - old_theta)) < step:
+            break
+    return theta
 
 if __name__ == '__main__':
     trainPath = 'dataset/train.csv'
@@ -213,4 +231,43 @@ if __name__ == '__main__':
     # print(x)
     # for i in range(len(y)):
     #     plt.plot(x[i], y[i], i)
+    # plt.show()
+
+    # iteracije da se utvrdi alpha za ridge
+    # x = []
+    # y = []
+    # z = []
+    # for i in np.linspace(0.01, 0.2, 10):
+    #     x.append(i)
+    #     theta = ridge(x_train, y_train, alpha=i, l=0)
+    #     r = []
+    #     for j in x_test:
+    #         r.append(predict(j, theta))
+    #     rmse = calculate_rmse(y_test, r)
+    #     y.append(rmse)
+    #     r = []
+    #     for j in x_train:
+    #         r.append(predict(j, theta))
+    #     rmse = calculate_rmse(y_test, r)
+    #     z.append(rmse)
+    #     print(i, rmse)
+    # plt.plot(x, y)
+    # plt.plot(x, z)
+    # plt.show()
+    # print(x, y, z)
+    # # 0.0483
+    #
+    # ## iteracije da se utvrdi lambda za ridge
+    # x = []
+    # y = []
+    # for i in np.linspace(0, 10, 20):
+    #     x.append(i)
+    #     theta = ridge(x_train, y_train, alpha=0, l=i)
+    #     r = []
+    #     for j in x_test:
+    #         r.append(predict(j, theta))
+    #     rmse = calculate_rmse(y_test, r)
+    #     y.append(rmse)
+    #     print(i, rmse)
+    # plt.plot(x, y)
     # plt.show()
