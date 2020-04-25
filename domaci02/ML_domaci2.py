@@ -119,7 +119,7 @@ def min_max_normalization(data, mins, maxs):
         if col == "pol_Male" or col == "oblast_A":  # fora je su samo 0 ili 1 pa ne treba
             continue
         for idx, row in enumerate(data[col]):
-            data.at[idx, col] = (row - mins[i]) / maxs[i] - mins[i]
+            data.at[idx, col] = (row - mins[i]) / (maxs[i] - mins[i])
     return data
 
 
@@ -195,7 +195,7 @@ def ridge2(x, y, alpha=0.05, step=0.1, l=0.1):
     return theta
 
 
-def train_validation(train_data, test_data, size=10):
+def train_validation(train_data, size=10, a=0.1, l=0.1):
     groups_x = []
     groups_y = []
     err = []
@@ -227,15 +227,15 @@ def train_validation(train_data, test_data, size=10):
             if i != j:
                 x_t += groups_x[j]
                 y_t += groups_y[j]
-
-        theta = ridge2(np.asarray(x_t, dtype=np.float64), np.asarray(y_t, dtype=np.float64))
+        print(i)
+        theta = ridge2(np.asarray(x_t, dtype=np.float64), np.asarray(y_t, dtype=np.float64), alpha=a, l=l)
 
         x = []
         for j in groups_x[i]:
             x.append(predict(j, theta))
         err.append(calculate_rmse(groups_y[i], x))
-        print(err)
-    print(sum(err)/len(err))
+
+    return sum(err)/len(err)
 
 
 if __name__ == '__main__':
@@ -251,7 +251,7 @@ if __name__ == '__main__':
     test_data = categorical_data(test_data, label_encoding)
     # print(train_data.columns.values)
 
-    # train_validation(train_data, test_data)
+    train_validation(train_data, test_data)
 
     train_data = train_data.astype('float64')
     y_train = train_data['plata'].to_numpy()
