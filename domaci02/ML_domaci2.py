@@ -38,24 +38,19 @@ def one_hot_encoding(data, name):
 
 
 def label_encoding(data, name):
-    data[name] = data[name].astype('category').cat.codes
+    if name == "zvanje":
+        data[name] = [0 if d == "Prof" else (1 if d == "AssocProf" else 2) for d in data[name]]
+    elif name == "pol":
+        data[name] = [1 if d == "Male" else 0 for d in data[name]]
+    elif name == "oblast":
+        data[name] = [1 if d == "A" else 0 for d in data[name]]
     return data
 
 
 def categorical_data(data, fun):
-    # data = fun(data, "zvanje")
-    # data = fun(data, "oblast")
-    # data = fun(data, "pol")
-    data = one_hot_encoding(data, "pol")
-    data = one_hot_encoding(data, "oblast")
-    data = label_encoding(data, "zvanje")
-
-    #fora zakomentarisati ako se za pol i oblast ne budu koristile one-hot-encoding
-    if 'pol_Female' in data:
-        del data['pol_Female']
-    if 'oblast_B' in data:
-        del data['oblast_B']
-    print(data.columns.values)
+    data = fun(data, "zvanje")
+    data = fun(data, "oblast")
+    data = fun(data, "pol")
     return data
 
 
@@ -63,7 +58,7 @@ def normalization(data, d_norm):
     for col in data:
         d = d_norm[col]
         for idx, row in enumerate(data[col]):
-            data.at[idx, col] = row/d
+            data.at[idx, col] = row / d
     return data
 
 
@@ -71,7 +66,7 @@ def d_normalization(data):
     d = {}
     for col in data:
         column_data = data[col].to_numpy()
-        d[col] = (math.sqrt(sum(column_data**2)))
+        d[col] = (math.sqrt(sum(column_data ** 2)))
     return d
 
 
@@ -89,9 +84,9 @@ def std_val_nor(data):
     return std_val
 
 
-def z_score_normalization(data,  mean_val, std_val):
+def z_score_normalization(data, mean_val, std_val):
     for i, col in enumerate(data):
-        if col == "pol_Male" or col == "oblast_A":  # fora je su samo 0 ili 1 pa ne treba
+        if col == "pol" or col == "oblast":  # fora je su samo 0 ili 1 pa ne treba
             continue
         for idx, row in enumerate(data[col]):
             data.at[idx, col] = (row - mean_val[i]) / std_val[i]
@@ -99,11 +94,6 @@ def z_score_normalization(data,  mean_val, std_val):
 
 
 def predict(x, theta):
-
-    # print(x)
-    # print(len(x))
-    # print(len(theta))
-    
     return sum(x[i] * theta[i] for i in range(len(theta)))
 
 
@@ -122,10 +112,10 @@ def lasso_coordinate_descent(x, y, step=0.1, l=5):
                 k = predict(x_predict, theta)
                 r += x[i][j] * (y[i] - k)
 
-            if r < l/2:
-                theta[j] = r + l/2
-            elif r > l/2:
-                theta[j] = r - l/2
+            if r < l / 2:
+                theta[j] = r + l / 2
+            elif r > l / 2:
+                theta[j] = r - l / 2
             else:
                 theta[j] = 0
         if sum(abs(theta - old_theta)) < step:
@@ -150,6 +140,7 @@ def ridge(x, y, alpha=0.0483, max_iters=500, l=0.000001):
 
     return theta
 
+
 def ridge2(x, y, alpha=0.1, step=0.001, l=0.1):
     N = len(x)
     D = len(x[0])
@@ -164,10 +155,49 @@ def ridge2(x, y, alpha=0.1, step=0.001, l=0.1):
                 y_predict = predict(x[i], theta)
                 suma += (y_predict - y[i]) * x[i][j]
             theta[j] = theta[j] * (1 - alpha * l) - alpha / N * suma
-        print(sum(abs(theta-old_theta)))
+        print(sum(abs(theta - old_theta)))
         if sum(abs(theta - old_theta)) < step:
             break
     return theta
+
+
+# statistic utill function
+
+
+def make_bar_chart(data, column_name, no_bars):
+    values = np.asanyarray(data[column_name], dtype=np.float64)
+    values = np.sort(values)
+    min_val = np.min(values)
+    max_val = np.max(values)
+    result = []
+    bars_values = []
+
+    bar_size = (max_val - min_val) / no_bars
+    val = min_val
+    while val < max_val:
+        a = [v for v in values if val <= v < val + bar_size]
+        result.append(len(a))
+        bars_values.append(val)
+        val += bar_size
+
+    total = np.sum(result)
+    print(result)
+    print(total)
+    print(len(values))
+
+    plt.bar(bars_values, result, align='center', alpha=0.5)
+
+    plt.show()
+
+
+def make_quartile_plot(data, column_name):
+
+    values = np.asanyarray(data[column_name], dtype=np.float64)
+    plt.boxplot(values)
+    for v in values:
+        plt.plot(1, v, 'r.', alpha=0.4)
+    plt.show()
+
 
 if __name__ == '__main__':
     trainPath = 'dataset/train.csv'
@@ -176,12 +206,14 @@ if __name__ == '__main__':
     train_data = pd.read_csv(trainPath)
     test_data = pd.read_csv(testPath)
 
+    make_quartile_plot(train_data, "godina_iskustva")
+
+    # make_bar_chart(train_data, "godina_iskustva", 5)
+
     # view_data(train_data, test_data)
-    #label encodin i one hot encoding
+    # #label encodin i one hot encoding
     train_data = categorical_data(train_data, label_encoding)
     test_data = categorical_data(test_data, label_encoding)
-
-    # print(train_data.columns.values)
 
     train_data = train_data.astype('float64')
     y_train = train_data['plata'].to_numpy()
@@ -192,7 +224,7 @@ if __name__ == '__main__':
 
     # print(train_data[0:10])
 
-    # normalizadija i ridge
+    # # normalizadija i ridge
     mean_val = mean_val_nor(train_data)
     std_val = std_val_nor(train_data)
     train_data = z_score_normalization(train_data, mean_val, std_val)
@@ -212,62 +244,62 @@ if __name__ == '__main__':
     for i in x_test:
         x.append(predict(i, theta))
     print(calculate_rmse(y_test, x))
-    #normailzacija i lasso
-    # d_norm = d_normalization(train_data)
-    # train_data = normalization(train_data, d_norm)
-    # x_train = train_data.to_numpy()
-    # theta = lasso_coordinate_descent(x_train, y_train, step=0.001, l=1)
-    # print(theta)
-
-    ## iteracije da se utvred koja obelezja ne trebaju
-    # x = []
-    # y = []
-    # for i in range(1, 100000, 100):
-    #     x.append(i)
-    #     y.append(lasso_coordinate_descent(x_train,y_train, l=i))
-    # y = np.array(y).transpose()
-    # print(y)
-    # x = [x]*len(y)
-    # print(x)
-    # for i in range(len(y)):
-    #     plt.plot(x[i], y[i], i)
-    # plt.show()
-
-    # iteracije da se utvrdi alpha za ridge
-    # x = []
-    # y = []
-    # z = []
-    # for i in np.linspace(0.01, 0.2, 10):
-    #     x.append(i)
-    #     theta = ridge(x_train, y_train, alpha=i, l=0)
-    #     r = []
-    #     for j in x_test:
-    #         r.append(predict(j, theta))
-    #     rmse = calculate_rmse(y_test, r)
-    #     y.append(rmse)
-    #     r = []
-    #     for j in x_train:
-    #         r.append(predict(j, theta))
-    #     rmse = calculate_rmse(y_test, r)
-    #     z.append(rmse)
-    #     print(i, rmse)
-    # plt.plot(x, y)
-    # plt.plot(x, z)
-    # plt.show()
-    # print(x, y, z)
-    # # 0.0483
+    # #normailzacija i lasso
+    # # d_norm = d_normalization(train_data)
+    # # train_data = normalization(train_data, d_norm)
+    # # x_train = train_data.to_numpy()
+    # # theta = lasso_coordinate_descent(x_train, y_train, step=0.001, l=1)
+    # # print(theta)
     #
-    # ## iteracije da se utvrdi lambda za ridge
-    # x = []
-    # y = []
-    # for i in np.linspace(0, 10, 20):
-    #     x.append(i)
-    #     theta = ridge(x_train, y_train, alpha=0, l=i)
-    #     r = []
-    #     for j in x_test:
-    #         r.append(predict(j, theta))
-    #     rmse = calculate_rmse(y_test, r)
-    #     y.append(rmse)
-    #     print(i, rmse)
-    # plt.plot(x, y)
-    # plt.show()
+    # ## iteracije da se utvred koja obelezja ne trebaju
+    # # x = []
+    # # y = []
+    # # for i in range(1, 100000, 100):
+    # #     x.append(i)
+    # #     y.append(lasso_coordinate_descent(x_train,y_train, l=i))
+    # # y = np.array(y).transpose()
+    # # print(y)
+    # # x = [x]*len(y)
+    # # print(x)
+    # # for i in range(len(y)):
+    # #     plt.plot(x[i], y[i], i)
+    # # plt.show()
+    #
+    # # iteracije da se utvrdi alpha za ridge
+    # # x = []
+    # # y = []
+    # # z = []
+    # # for i in np.linspace(0.01, 0.2, 10):
+    # #     x.append(i)
+    # #     theta = ridge(x_train, y_train, alpha=i, l=0)
+    # #     r = []
+    # #     for j in x_test:
+    # #         r.append(predict(j, theta))
+    # #     rmse = calculate_rmse(y_test, r)
+    # #     y.append(rmse)
+    # #     r = []
+    # #     for j in x_train:
+    # #         r.append(predict(j, theta))
+    # #     rmse = calculate_rmse(y_test, r)
+    # #     z.append(rmse)
+    # #     print(i, rmse)
+    # # plt.plot(x, y)
+    # # plt.plot(x, z)
+    # # plt.show()
+    # # print(x, y, z)
+    # # # 0.0483
+    # #
+    # # ## iteracije da se utvrdi lambda za ridge
+    # # x = []
+    # # y = []
+    # # for i in np.linspace(0, 10, 20):
+    # #     x.append(i)
+    # #     theta = ridge(x_train, y_train, alpha=0, l=i)
+    # #     r = []
+    # #     for j in x_test:
+    # #         r.append(predict(j, theta))
+    # #     rmse = calculate_rmse(y_test, r)
+    # #     y.append(rmse)
+    # #     print(i, rmse)
+    # # plt.plot(x, y)
+    # # plt.show()
