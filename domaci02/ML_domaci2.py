@@ -55,6 +55,8 @@ def categorical_data(data, fun):
         del data['pol_Female']
     if 'oblast_B' in data:
         del data['oblast_B']
+    # if 'pol_Female' not in data.columns:
+    #     data.insert(loc=4, column='pol_Female', value=[0]*len(data))
     print(data.columns.values)
     return data
 
@@ -150,7 +152,7 @@ def ridge(x, y, alpha=0.0483, max_iters=500, l=0.000001):
 
     return theta
 
-def ridge2(x, y, alpha=0.1, step=0.001, l=0.1):
+def ridge2(x, y, alpha=0.05, step=0.1, l=0.1):
     N = len(x)
     D = len(x[0])
     theta = [1.0] * D
@@ -169,6 +171,50 @@ def ridge2(x, y, alpha=0.1, step=0.001, l=0.1):
             break
     return theta
 
+
+def train_validation(train_data, test_data, size=10):
+    groups_x = []
+    groups_y = []
+    err = []
+    train_data.sort_values(by=['plata'], inplace=True)
+    train_data = train_data.astype('float64')
+    y_train = train_data['plata'].to_numpy()
+    del train_data['plata']
+    mean_val = mean_val_nor(train_data)
+    std_val = std_val_nor(train_data)
+    train_data = z_score_normalization(train_data, mean_val, std_val)
+    x_train = train_data.to_numpy()
+
+    n = 0
+    for i in range(len(y_train)):
+        if len(groups_x) <= n:
+            groups_x.append([])
+            groups_y.append([])
+        groups_x[n].append(x_train[i])
+        groups_y[n].append(y_train[i])
+
+        if n == size - 1:
+            n = 0
+        else:
+            n += 1
+    for i in range(0, size):
+        x_t = []
+        y_t = []
+        for j in range(0, size):
+            if i != j:
+                x_t += groups_x[j]
+                y_t += groups_y[j]
+
+        theta = ridge2(np.asarray(x_t, dtype=np.float64), np.asarray(y_t, dtype=np.float64))
+
+        x = []
+        for j in groups_x[i]:
+            x.append(predict(j, theta))
+        err.append(calculate_rmse(groups_y[i], x))
+        print(err)
+    print(sum(err)/len(err))
+
+
 if __name__ == '__main__':
     trainPath = 'dataset/train.csv'
     testPath = 'dataset/test_preview.csv'
@@ -180,9 +226,9 @@ if __name__ == '__main__':
     #label encodin i one hot encoding
     train_data = categorical_data(train_data, label_encoding)
     test_data = categorical_data(test_data, label_encoding)
-
     # print(train_data.columns.values)
 
+    train_validation(train_data, test_data)
     train_data = train_data.astype('float64')
     y_train = train_data['plata'].to_numpy()
     del train_data['plata']
@@ -212,6 +258,7 @@ if __name__ == '__main__':
     for i in x_test:
         x.append(predict(i, theta))
     print(calculate_rmse(y_test, x))
+
     #normailzacija i lasso
     # d_norm = d_normalization(train_data)
     # train_data = normalization(train_data, d_norm)
