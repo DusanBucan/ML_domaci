@@ -100,12 +100,35 @@ def z_score_normalization(data,  mean_val, std_val):
     return data
 
 
+def min_values(data):
+    min_val = []
+    for col in data:
+        min_val.append(np.min(np.asanyarray(data[col], dtype=np.float64)))
+    return min_val
+
+
+def max_values(data):
+    max_val = []
+    for col in data:
+        max_val.append(np.max(np.asanyarray(data[col], dtype=np.float64)))
+    return max_val
+
+
+def min_max_normalization(data, mins, maxs):
+    for i, col in enumerate(data):
+        if col == "pol_Male" or col == "oblast_A":  # fora je su samo 0 ili 1 pa ne treba
+            continue
+        for idx, row in enumerate(data[col]):
+            data.at[idx, col] = (row - mins[i]) / maxs[i] - mins[i]
+    return data
+
+
 def predict(x, theta):
 
     # print(x)
     # print(len(x))
     # print(len(theta))
-    
+
     return sum(x[i] * theta[i] for i in range(len(theta)))
 
 
@@ -166,7 +189,7 @@ def ridge2(x, y, alpha=0.05, step=0.1, l=0.1):
                 y_predict = predict(x[i], theta)
                 suma += (y_predict - y[i]) * x[i][j]
             theta[j] = theta[j] * (1 - alpha * l) - alpha / N * suma
-        print(sum(abs(theta-old_theta)))
+        # print(sum(abs(theta-old_theta)))
         if sum(abs(theta - old_theta)) < step:
             break
     return theta
@@ -180,9 +203,9 @@ def train_validation(train_data, test_data, size=10):
     train_data = train_data.astype('float64')
     y_train = train_data['plata'].to_numpy()
     del train_data['plata']
-    mean_val = mean_val_nor(train_data)
-    std_val = std_val_nor(train_data)
-    train_data = z_score_normalization(train_data, mean_val, std_val)
+    min_val = min_values(train_data)
+    max_val = max_values(train_data)
+    train_data = min_max_normalization(train_data, min_val, max_val)
     x_train = train_data.to_numpy()
 
     n = 0
@@ -228,7 +251,8 @@ if __name__ == '__main__':
     test_data = categorical_data(test_data, label_encoding)
     # print(train_data.columns.values)
 
-    train_validation(train_data, test_data)
+    # train_validation(train_data, test_data)
+
     train_data = train_data.astype('float64')
     y_train = train_data['plata'].to_numpy()
     del train_data['plata']
@@ -239,9 +263,9 @@ if __name__ == '__main__':
     # print(train_data[0:10])
 
     # normalizadija i ridge
-    mean_val = mean_val_nor(train_data)
-    std_val = std_val_nor(train_data)
-    train_data = z_score_normalization(train_data, mean_val, std_val)
+    min_val = min_values(train_data)
+    max_val = max_values(train_data)
+    train_data = min_max_normalization(train_data, min_val, max_val)
     x_train = train_data.to_numpy()
     theta = ridge(x_train, y_train)
     print(theta)
@@ -252,7 +276,7 @@ if __name__ == '__main__':
     # del test_data['godina_doktor']
     # del test_data['godina_iskustva']
 
-    test_data = z_score_normalization(test_data, mean_val, std_val)
+    test_data = min_max_normalization(test_data, min_val, max_val)
     x_test = test_data.to_numpy()
     x = []
     for i in x_test:
