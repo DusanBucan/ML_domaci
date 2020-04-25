@@ -133,7 +133,7 @@ def lasso_coordinate_descent(x, y, step=0.1, l=5):
     return theta
 
 
-def ridge(x, y, alpha=0.001, max_iters=10000, l=0.2):
+def ridge(x, y, alpha=0.0483, max_iters=500, l=0.000001):
     N = len(x)
     D = len(x[0])
     theta = [1.0] * D
@@ -146,7 +146,7 @@ def ridge(x, y, alpha=0.001, max_iters=10000, l=0.2):
                 y_predict = predict(x[i], theta)
 
                 sum += (y_predict - y[i]) * x[i][j]
-                theta[j] = theta[j] * (1 - alpha * l) - alpha / N * sum
+            theta[j] = theta[j] * (1 - alpha * l) - alpha / N * sum
 
     return theta
 
