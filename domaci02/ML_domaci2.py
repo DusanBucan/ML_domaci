@@ -43,9 +43,19 @@ def label_encoding(data, name):
 
 
 def categorical_data(data, fun):
-    data = fun(data, "zvanje")
-    data = fun(data, "oblast")
-    data = fun(data, "pol")
+    # data = fun(data, "zvanje")
+    # data = fun(data, "oblast")
+    # data = fun(data, "pol")
+    data = one_hot_encoding(data, "pol")
+    data = one_hot_encoding(data, "oblast")
+    data = label_encoding(data, "zvanje")
+
+    #fora zakomentarisati ako se za pol i oblast ne budu koristile one-hot-encoding
+    if 'pol_Female' in data:
+        del data['pol_Female']
+    if 'oblast_B' in data:
+        del data['oblast_B']
+    print(data.columns.values)
     return data
 
 
@@ -81,12 +91,19 @@ def std_val_nor(data):
 
 def z_score_normalization(data,  mean_val, std_val):
     for i, col in enumerate(data):
+        if col == "pol_Male" or col == "oblast_A":  # fora je su samo 0 ili 1 pa ne treba
+            continue
         for idx, row in enumerate(data[col]):
             data.at[idx, col] = (row - mean_val[i]) / std_val[i]
     return data
 
 
 def predict(x, theta):
+
+    # print(x)
+    # print(len(x))
+    # print(len(theta))
+    
     return sum(x[i] * theta[i] for i in range(len(theta)))
 
 
@@ -146,12 +163,16 @@ if __name__ == '__main__':
     train_data = categorical_data(train_data, label_encoding)
     test_data = categorical_data(test_data, label_encoding)
 
-    print(train_data.columns.values)
+    # print(train_data.columns.values)
+
     train_data = train_data.astype('float64')
     y_train = train_data['plata'].to_numpy()
     del train_data['plata']
-    del train_data['godina_doktor']
-    del train_data['godina_iskustva']
+    # zasto su izbacena ova 2?
+    # del train_data['godina_doktor']
+    # del train_data['godina_iskustva']
+
+    # print(train_data[0:10])
 
     # normalizadija i ridge
     mean_val = mean_val_nor(train_data)
@@ -164,8 +185,8 @@ if __name__ == '__main__':
     test_data = test_data.astype('float64')
     y_test = test_data['plata'].to_numpy()
     del test_data['plata']
-    del test_data['godina_doktor']
-    del test_data['godina_iskustva']
+    # del test_data['godina_doktor']
+    # del test_data['godina_iskustva']
 
     test_data = z_score_normalization(test_data, mean_val, std_val)
     x_test = test_data.to_numpy()
