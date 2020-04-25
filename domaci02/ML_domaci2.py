@@ -181,10 +181,21 @@ def ridge2(x, y, alpha=0.05, step=0.1, l=0.1):
             break
     return theta
 
+""""
+    vrati PROSECAN RMSE
+    
+    NE MENJA PARAMETRE KOD RIDGE
+    NE BIRA NAJBOLJE TETA
+
+"""
 def train_validation(train_data, test_data, size=10):
     groups_x = []
     groups_y = []
     err = []
+
+    min_err = math.inf
+    best_theta = []
+
     train_data.sort_values(by=['plata'], inplace=True)
     train_data = train_data.astype('float64')
     y_train = train_data['plata'].to_numpy()
@@ -272,51 +283,52 @@ if __name__ == '__main__':
 
     # make_quartile_plot(train_data, "godina_iskustva")
     # make_bar_chart(train_data, "godina_iskustva", 5)
-    # view_data(train_data, test_data)
+
+    view_data(train_data, test_data)
     
-    # #label encoding
-    train_data = categorical_data(train_data, label_encoding)
-    test_data = categorical_data(test_data, label_encoding)
-
-    # print(train_data.columns.values)
-    # train_validation(train_data, test_data)
-
-    train_data = train_data.astype('float64')
-    y_train = train_data['plata'].to_numpy()
-    del train_data['plata']
-    # zasto su izbacena ova 2?
-    # del train_data['godina_doktor']
-    # del train_data['godina_iskustva']
-
-    # print(train_data[0:10])
-
-    # # Z-SCORE i ridge
-    # mean_val = mean_val_nor(train_data)
-    # std_val = std_val_nor(train_data)
-    # train_data = z_score_normalization(train_data, mean_val, std_val)
-
-    # MIN-MAX normalizacija i ridge
-    min_val = min_values(train_data)
-    max_val = max_values(train_data)
-    train_data = min_max_normalization(train_data, min_val, max_val)
-
-
-    x_train = train_data.to_numpy()
-    theta = ridge(x_train, y_train)
-    print(theta)
-
-    test_data = test_data.astype('float64')
-    y_test = test_data['plata'].to_numpy()
-    del test_data['plata']
-    # del test_data['godina_doktor']
-    # del test_data['godina_iskustva']
-
-    test_data = min_max_normalization(test_data, min_val, max_val)
-    x_test = test_data.to_numpy()
-    x = []
-    for i in x_test:
-        x.append(predict(i, theta))
-    print(calculate_rmse(y_test, x))
+    # # #label encoding
+    # train_data = categorical_data(train_data, label_encoding)
+    # test_data = categorical_data(test_data, label_encoding)
+    #
+    # # print(train_data.columns.values)
+    # # train_validation(train_data, test_data)
+    #
+    # train_data = train_data.astype('float64')
+    # y_train = train_data['plata'].to_numpy()
+    # del train_data['plata']
+    # # zasto su izbacena ova 2?
+    # # del train_data['godina_doktor']
+    # # del train_data['godina_iskustva']
+    #
+    # # print(train_data[0:10])
+    #
+    # # # Z-SCORE i ridge
+    # # mean_val = mean_val_nor(train_data)
+    # # std_val = std_val_nor(train_data)
+    # # train_data = z_score_normalization(train_data, mean_val, std_val)
+    #
+    # # MIN-MAX normalizacija i ridge
+    # min_val = min_values(train_data)
+    # max_val = max_values(train_data)
+    # train_data = min_max_normalization(train_data, min_val, max_val)
+    #
+    #
+    # x_train = train_data.to_numpy()
+    # theta = ridge(x_train, y_train)
+    # print(theta)
+    #
+    # test_data = test_data.astype('float64')
+    # y_test = test_data['plata'].to_numpy()
+    # del test_data['plata']
+    # # del test_data['godina_doktor']
+    # # del test_data['godina_iskustva']
+    #
+    # test_data = min_max_normalization(test_data, min_val, max_val)
+    # x_test = test_data.to_numpy()
+    # x = []
+    # for i in x_test:
+    #     x.append(predict(i, theta))
+    # print(calculate_rmse(y_test, x))
     
     #normailzacija i lasso
     # d_norm = d_normalization(train_data)

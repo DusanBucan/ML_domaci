@@ -1,9 +1,29 @@
-37070.17562363442 ---> kada ne radis Z-score za pol i za oblast i koristis SVA obelezja
-	===> treba se uveriti da zvanje ima NORMLANU RASPODELU....
 
-54682.824399021476 ---> kada NE RADIS Z-score ni za jedno od kategorijalnih i koristis SVA obelezja
+1. obelezja da se svedu na isti range
+    MIN-MAX normalizacijom su se sva obelezja svela BLIZU na range 0-1 (MOZE BOLJE)
+
+    ===> DOSLO JE I DO POTIRANJA za neke vrednosti GODINE_ISKUSTVA
+    ===> GODINE_DOKTOR su na range od -1 do 1 ZASTO??? outLieri?????
+
+
+2. da se uklone outlieri
+    ===> IMA KOD PROFESORA 1 ---> to pogotovo utice kad se KORISTI MIN-MAX NORMALIZACIJA
+    ===> GODINE OBE IMAJU OUTLIER-e
+
+3. da se malo fineTune kategorijalna
+    ===> za ZVANJE treba da bude 0,1,2 ---> sa tim da AssocProf i AssProf treba da budu SLICNIJI!!!!
+    ===> POL NIJE ONE-HOT-ENCODING ---> JER REALNO MUSKACRI IMAJU VECE PLATE
+    ===> OBLAST MOZE BITI ONE-HOT-ENCODING jer je POPRILICNO UJEDNACENO sto se tice PLATE
+
+
+4. da se vide da li su sva obelezja vazna sa Lasso i onda da se pusta OLS
+
+5. da se proba ELASTIC_NET
+
+6. probabilisticke metode da se probaju
 
 
 
+11924.444453577245 ---> MIN-MAX normalizacija ridge sa svim obelezjima
 
 28500 ---> mora da padne ispod ovog.
