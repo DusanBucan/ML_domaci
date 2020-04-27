@@ -345,7 +345,7 @@ if __name__ == '__main__':
     ## iteracije da se utvred koja obelezja ne trebaju
     x = []
     y = []
-    for i in range(1, 100000, 100):
+    for i in range(1, 100000, 10000):
         x.append(i)
         y.append(lasso_coordinate_descent(x_train, y_train, l=i))
     y = np.array(y).transpose()
