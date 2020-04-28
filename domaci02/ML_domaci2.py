@@ -43,11 +43,11 @@ def label_encoding(data, name):
     if name == "zvanje":
         data[name] = [4.5 if d == "Prof" else (1.5 if d == "AssocProf" else 1) for d in data[name]]
     elif name == "pol":
-        data[name] = [1 if d == "Male" else 0 for d in data[name]]
+        data[name] = [1 if d == "Male" else 2 for d in data[name]]
 
     # treba da ide cist one-hot-encoding..
     elif name == "oblast":
-        data[name] = [1 if d == "A" else 0 for d in data[name]]
+        data[name] = [1 if d == "A" else 2 for d in data[name]]
     return data
 
 
@@ -182,23 +182,15 @@ def ridge2(x, y, alpha=0.05, step=0.1, l=0.1):
                 y_predict = predict(x[i], theta)
                 suma += (y_predict - y[i]) * x[i][j]
             theta[j] = theta[j] * (1 - alpha * l) - alpha / N * suma
+        # print(sum(abs(theta - old_theta)) )
         if sum(abs(theta - old_theta)) < step:
             break
     return theta
 
-""""
-    vrati PROSECAN RMSE
-    
-    NE MENJA PARAMETRE KOD RIDGE
-    NE BIRA NAJBOLJE TETA
-""""
 def train_validation(train_data, size=10, a=0.1, l=0.1):
     groups_x = []
     groups_y = []
     err = []
-
-    min_err = math.inf
-    best_theta = []
 
     train_data.sort_values(by=['plata'], inplace=True)
     train_data = train_data.astype('float64')
@@ -271,10 +263,21 @@ def make_quartile_plot(data, column_name):
 
     values = np.asanyarray(data[column_name], dtype=np.float64)
     plt.boxplot(values)
+    print(column_name)
     for v in values:
-        plt.plot(1, v, 'r.', alpha=0.4)
+        plt.plot(1, v, 'r.')
     plt.show()
 
+
+def remove_outliers(data):
+    Q1 = data.quantile(0.25)
+    Q3 = data.quantile(0.75)
+    IQR = Q3 - Q1
+    #da ne bi izbacio sve zene iz dataseta - 19010, ako ih izbaci 15000, al test skup je samo nad muskarcima
+    IQR[4] = 1.0
+    # with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
+    #     print((data < (Q1 - 1.5 * IQR)) | (data > (Q3 + 1.5 * IQR)))
+    return data[~((data < (Q1 - 1.5 * IQR)) | (data > (Q3 + 1.5 * IQR))).any(axis=1)]
 
 
 if __name__ == '__main__':
@@ -284,75 +287,109 @@ if __name__ == '__main__':
     train_data = pd.read_csv(trainPath)
     test_data = pd.read_csv(testPath)
 
+    #pregled podataka
+    # view_data(train_data, test_data)
 
-    # make_quartile_plot(train_data, "godina_iskustva")
     # make_bar_chart(train_data, "godina_iskustva", 5)
 
-    # view_data(train_data, test_data)
     
     #label encoding
+
     train_data = categorical_data(train_data, label_encoding)
     test_data = categorical_data(test_data, label_encoding)
 
-    train_validation(train_data, test_data)
+    # for i in train_data:
+    #     make_quartile_plot(train_data, i)
+
+    # ako se skinu outlieri bude 18963
+    # ako ne 18777
+    # train_data = remove_outliers(train_data)
+    # train_data = train_data.reset_index(drop=True)
+    # with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
+    #     print(train_data)
+    # train_validation(train_data, test_data)
+
+    # godine = train_data['godina_doktor'] + train_data['godina_iskustva']
+    # train_data['godine'] = godine
+
+    # del train_data['godina_doktor']
+    # del train_data['godina_iskustva']
+    # x = []
+    # y = []
+    # for i in np.linspace(0, 0.05, 10):
+    #     x.append(i)
+    #     y.append(train_validation(train_data, size=5, a=0.55, l=i))
+    # plt.plot(x, y)
+    # plt.show()
+    # print(x, y)
+
+
+    # ako se izbrise godina iskustva dobije se 18934 ako su skinuti outlieri ako nisu 18777
+    # del train_data['godina_iskustva']
+    # del test_data['godina_iskustva']
+
+
+    #godine, ako se spoje - 18962 ako se skinu, ako ne 18805
+    godine = train_data['godina_doktor'] + train_data['godina_iskustva']
+    train_data['godine'] = godine
+
+    godine = test_data['godina_doktor'] + test_data['godina_iskustva']
+    test_data['godine'] = godine
+    del train_data['godina_doktor']
+    del test_data['godina_doktor']
+    del train_data['godina_iskustva']
+    del test_data['godina_iskustva']
+
+
 
     train_data = train_data.astype('float64')
     y_train = train_data['plata'].to_numpy()
     del train_data['plata']
-    # # zasto su izbacena ova 2?
-    # del train_data['godina_doktor']
-    # del train_data['godina_iskustva']
 
-    # print(train_data[0:10])
-    #
     # # Z-SCORE i ridge
     # mean_val = mean_val_nor(train_data)
     # std_val = std_val_nor(train_data)
     # train_data = z_score_normalization(train_data, mean_val, std_val)
 
     # MIN-MAX normalizacija i ridge
-    # min_val = min_values(train_data)
-    # max_val = max_values(train_data)
-    # train_data = min_max_normalization(train_data, min_val, max_val)
+    min_val = min_values(train_data)
+    max_val = max_values(train_data)
+    train_data = min_max_normalization(train_data, min_val, max_val)
 
     #
-    # x_train = train_data.to_numpy()
-    # theta = ridge(x_train, y_train)
-    # print(theta)
-    #
-    # test_data = test_data.astype('float64')
-    # y_test = test_data['plata'].to_numpy()
-    # del test_data['plata']
-    # # del test_data['godina_doktor']
-    # # del test_data['godina_iskustva']
-    #
-    # test_data = min_max_normalization(test_data, min_val, max_val)
-    # x_test = test_data.to_numpy()
-    # x = []
-    # for i in x_test:
-    #     x.append(predict(i, theta))
-    # print(calculate_rmse(y_test, x))
+    x_train = train_data.to_numpy()
+    theta = ridge2(x_train, y_train, alpha=0.55, l=0.018)
+    test_data = test_data.astype('float64')
+    y_test = test_data['plata'].to_numpy()
+    del test_data['plata']
+
+    test_data = min_max_normalization(test_data, min_val, max_val)
+    x_test = test_data.to_numpy()
+    x = []
+    for i in x_test:
+        x.append(predict(i, theta))
+    print(calculate_rmse(y_test, x))
     
     #normailzacija i lasso
-    d_norm = d_normalization(train_data)
-    train_data = normalization(train_data, d_norm)
-    x_train = train_data.to_numpy()
+    # d_norm = d_normalization(train_data)
+    # train_data = normalization(train_data, d_norm)
+    # x_train = train_data.to_numpy()
     # theta = lasso_coordinate_descent(x_train, y_train, step=0.001, l=1)
     # print(theta)
 
     ## iteracije da se utvred koja obelezja ne trebaju
-    x = []
-    y = []
-    for i in range(1, 100000, 100):
-        x.append(i)
-        y.append(lasso_coordinate_descent(x_train, y_train, l=i))
-    y = np.array(y).transpose()
-    print(y)
-    x = [x]*len(y)
-    print(x)
-    for i in range(len(y)):
-        plt.plot(x[i], y[i], i)
-    plt.show()
+    # x = []
+    # y = []
+    # for i in range(1, 100000, 100):
+    #     x.append(i)
+    #     y.append(lasso_coordinate_descent(x_train, y_train, l=i))
+    # y = np.array(y).transpose()
+    # print(y)
+    # x = [x]*len(y)
+    # print(x)
+    # for i in range(len(y)):
+    #     plt.plot(x[i], y[i], i)
+    # plt.show()
 
 
 

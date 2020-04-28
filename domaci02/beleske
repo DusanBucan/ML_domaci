@@ -37,7 +37,8 @@
     ===> outlieri isto
 
 7. unakrsna validacija i Ridge?
-    video sam tamo nesto da koriste Z-Score za normalizaciju
+    video sam tamo nesto
+    odrediti lambda i alpha
 
 
 5. da se proba ELASTIC_NET
