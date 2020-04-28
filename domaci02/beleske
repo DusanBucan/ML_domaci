@@ -1,51 +1,164 @@
 1. obelezja da se svedu na isti range
     MIN-MAX normalizacijom su se sva obelezja svela BLIZU na range 0-1 (MOZE BOLJE)
-        ==> da li koristiti za zvanje?
+    Z-SCORE daje losije rezultate od Min-Max normalizacije..s
 
-    ===> DA LI SMO SE ZEZNULI, da li OBELEZJA IMAJU NORMALNU RASPODELU???
+    --> RAZLICITA OBELEZJA RAZLICITOM metrikom da normalizujes ako imaju razlicitu RASPODELU.
 
-
-4. NIJE UJEDNACEN BROJ OPSERVACIJA
-
-    npr.:
-        a. mnogo vise muskaraca nego zena
-        b. mnogo vise profesora nego ostalih
-        c.
+    ===> kazu shapiro da NEMAJU NORMALNU RASPODELU NI JEDNO...
 
 
-2. da se uklone outlieri
-    ===> IMA KOD PROFESORA 1 ---> to pogotovo utice kad se KORISTI MIN-MAX NORMALIZACIJA
-    ===> GODINE OBE IMAJU OUTLIER-e
+2. da se uklone outlieri (MORA MNOGO BOLJE)
 
-    ===> KAKO znati da bas je ZBOG te osobine OUTLIER..
-        ---> msm veroatno ako su ostale osobine u range i
-            onda ta jedna odskace bas
+    ===> videti TAABlICU KOVARIJANSE OBELEZJA, PCA da visis KOLIKO zavisi koje od kojeg.
+
+    ===> uklonio sam po po IQR-u po PLATI, najjednostvnije
+    ---> moze da se gleda i po drugim obelezjima ili IQR skidanje ili Z-SCORE-skidanje
+
+    ===> MOZDA KOD OBLASTI UKLONITI OUTLIER-e nekako su mi neujednaceni KOEFICIJENTI..
+        (ispada da imaju vecu platu ako B oblast predaju, a GRAFIK POKAZUJE SUPROTNO)
+
+    ---> RAZLICITO OTKLANJATI outLier-e u zavisnosti od RASPODELE OBELEZJA(negde Quartil, negde Z-SCORE)
+
+    ---> npr da imas QUARTIL PLOTOVE PO POLU, pa da skida OUTLIER-e i za ZENE i za MUSKARCE po plati..
+        ==> da ne skine samo one najvse muske nego oba...
+
+    ===> GODINE ISKUSTVA ---> ukloniti one koji imaju bas bas DOSTA ISKUSTVA a MALE PLATE, to je bas NELOGICNO.
+
+
+3. da se malo fineTune kategorijalna (zavrsena prica)
+    a. label-encoding ---> ako ga NE NORMALIZUJEM, onda GODINE ISKUSVA idu u MINUS
+        ===> ili treba da se NORMALIZUJE ili DA SE IZBACI OBELZJE...
+    b. one-hot-encoding za OBLAST i za POL ---> daje stabilnije rezultate.
+
+
+10. LASO mi kaze da bi mogao samo BIAS da izbaci....
+    ==> NEMA OD LASO NISTA, vecina OBELEZJA je BITNA TAKO DA RIDGE se radi od parametarskih i CAO.
+
+
+
+===> sto se jebavamo sa nasom implementacijom bukvano uzemo LASSO, ElasticNet iz neke biblioteke
+    i proverimo sta ce dati.... i ako je dobro onda ga implementiramo...
 
 
 
 
-3. da se malo fineTune kategorijalna
-    ===> za ZVANJE treba da bude 0,1,2 ---> sa tim da AssocProf i AssProf treba da budu SLICNIJI!!!!
-    ===> POL NIJE ONE-HOT-ENCODING ---> JER REALNO MUSKACRI IMAJU VECE PLATE
-    ===> OBLAST MOZE BITI ONE-HOT-ENCODING jer je POPRILICNO UJEDNACENO sto se tice PLATE
 
+MORA SUTRA!!!
+-----------------------------------------------------------------------------
 
+5. izracunati kovarijansu
+    - medjusobno u dataFrame-u
+    - obelezja sa Y
+    - gde je ona granica kad ja jaka kovarijansa a kad je slaba?
 
-4. da se vide da li su sva obelezja vazna sa Lasso i onda da se pusta OLS
-
-    ===> neka normlizacija ostane kakva je sad.
-    ===> outlieri isto
 
 7. unakrsna validacija i Ridge?
     video sam tamo nesto da koriste Z-Score za normalizaciju
 
 
-5. da se proba ELASTIC_NET
+5. da se proba ELASTIC_NET ===> probao ugradjeni...
 
-6. probabilisticke metode da se probaju
+
+
+6. probabilisticke metode da se probaju (NEEE)
+
+
+    ====> al ono borisovo da probamo..
+        i da tezine damo najvise:
+            a. zvanje
+            b. pol
+            c. oblast
+            d. doktor i iskustvo
+
+
+7. da li si pravio INTERPETACIJU MODELA????
+
+
 
 
 =======================  REZULTATI =======================
 
 
-28500 ---> mora da padne ispod ovog.
+===> ugadjeni ElasticNet ne moze da ide ispod 14k... tako da ovo nase sa ridge dosta.
+
+BEZ BIAS-a:
+    zvanje: 43500.28745391
+    godina_doktor: 11614.70606099
+    godina_iskustva: 238.41931903
+    oblast_A: 29465.57473969
+    oblast_B: 43843.52934004
+    pol_Female: 31994.67259284
+    pol_Male: 39507.61554394
+
+    rez: 15455.468965150296
+
+SA BIAS-om:
+    zvanje: 41762.14136381
+    godina_doktor: 10955.12817268
+    godina_iskustva: 1033.99587376
+    oblast_A: 12114.61181695
+    oblast_B: 26213.27342281
+    pol_Female: 15401.81264046s
+    pol_Male: 21987.10706383s
+    bias: 36386.62929327
+
+    rez: 15304.643422741729 ===> malo se popravio
+
+sa Biasom-om bez GODINA_ISKUSTVA:
+
+    ===> mi dobijemo rez: 15368.664162610445 ===> Min-MAXsto je LOSIJE nego sa GODINAMA_iskustva.....
+
+    ===> Z-Score bez Godine_iskustva + bias ===> dobije se jos bolje 15160...
+
+ako godine_iskustva normalizujemo min_max a ostale za Z --->
+    tj jedino sto ostaje je godine_doktor i zvanje sa Z-score..
+
+    ===> mozda zbog raspodela.
+
+
+====> BIAS i sva ostala obelezja
+
+    za Min-Max za
+
+
+
+===> OutLier-i
+
+
+==========================================================
+uraditi:
+	1. plotove za platu po zanimanju da budu 3 boxplota
+	2. broj profesora, broj assocProf, broj assProf
+
+
+===> ako izbacimo one 2 observacije sto imaju ogromnu platu sto su outlier-i
+	mozda nam model bude bolji...(jeste malo)
+
+---> pogledati kovarijansu obelezja
+
+
+
+
+===> KAKO CE SE PROMENITI MODEL AKO MENJAS TRAIN SKUP???(ovako proveris)
+---> sa svim trainPodacima ==> ako izbacimo malo train_podataka, slicni koef
+			===> tjt otprilike (ZNACI ono NIJE BAS NESTABLINO sa RIGE
+				ovako kako je sada)
+
+
+---> sta sve ima kod ridge-a??
+
+	kako odrediti alpha?
+	alpha  ===> Learning Rate u GradientDecentu, koristio si ga i pre
+			---> ono milica Napravila grafik da vidi koji ce da uzme
+
+	l --> l=0 obinca OLS,
+	      l=inf --> svi koef=0 (velika greska, sistemsko odsuptanje)
+	---> kod nas je jako mali...
+	maxIter, step
+
+
+
+
+
+
+

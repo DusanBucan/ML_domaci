@@ -1,7 +1,12 @@
-import matplotlib.pyplot as plt
+import sys
+
+# import matplotlib.pyplot as plt
 import pandas as pd
 import math
 import numpy as np
+# from scipy.stats import shapiro, normaltest
+# from sklearn.linear_model import ElasticNet
+# from sklearn.metrics import mean_squared_error
 
 
 def calculate_rmse(y_true, y_predict):
@@ -12,49 +17,70 @@ def calculate_rmse(y_true, y_predict):
     rmse = math.sqrt(sum / N)
     return rmse
 
-
-def view_data(train_data, test_data):
-    # print(train_data['zvanje'])
-    print(test_data)
-    plt.scatter(train_data['zvanje'], train_data['plata'])
-    plt.show()
-    plt.scatter(train_data['oblast'], train_data['plata'])
-    plt.show()
-    plt.scatter(train_data['godina_doktor'], train_data['plata'])
-    plt.show()
-    plt.scatter(train_data['godina_iskustva'], train_data['plata'])
-    plt.show()
-    plt.scatter(train_data['pol'], train_data['plata'])
-    plt.show()
-    x_data = [row[1][4] for row in train_data.iterrows() if row[1][0] == 'Prof']
-    y_data = [row[1][5] for row in train_data.iterrows() if row[1][0] == 'Prof']
-
-    plt.scatter(x_data, y_data)
-    plt.show()
+#
+# def view_data(train_data, test_data):
+#     # print(train_data['zvanje'])
+#     print(test_data)
+#     plt.scatter(train_data['zvanje'], train_data['plata'])
+#     plt.show()
+#     plt.scatter(train_data['oblast'], train_data['plata'])
+#     plt.show()
+#     plt.scatter(train_data['godina_doktor'], train_data['plata'])
+#     plt.show()
+#     plt.scatter(train_data['godina_iskustva'], train_data['plata'])
+#     plt.show()
+#     plt.scatter(train_data['pol'], train_data['plata'])
+#     plt.show()
+#     x_data = [row[1][4] for row in train_data.iterrows() if row[1][0] == 'Prof']
+#     y_data = [row[1][5] for row in train_data.iterrows() if row[1][0] == 'Prof']
+#
+#     plt.scatter(x_data, y_data)
+#     plt.show()
 
 
 def one_hot_encoding(data, name):
-    return pd.get_dummies(data, columns=[name])
+
+    data = pd.get_dummies(data, columns=[name])
+
+    #dopunjaavanje dataFrame-a
+    if "pol_Male" not in data and "pol" == name:
+        data['pol_Male'] = 0
+    if "pol_Female" not in data and "pol" == name:
+        data['pol_Female'] = 0
+    if "oblast_A" not in data and "oblast" == name:
+        data['oblast_A'] = 0
+    if "oblast_B" not in data and "oblast" == name:
+        data['oblast_B'] = 0
+
+
+    return data
 
 
 def label_encoding(data, name):
 
     # za zvanje ide Ordinal Encoding
     if name == "zvanje":
-        data[name] = [4.5 if d == "Prof" else (1.5 if d == "AssocProf" else 1) for d in data[name]]
+        data[name] = [3 if d == "Prof" else (2 if d == "AssocProf" else 1) for d in data[name]]
     elif name == "pol":
         data[name] = [1 if d == "Male" else 0 for d in data[name]]
 
     # treba da ide cist one-hot-encoding..
     elif name == "oblast":
-        data[name] = [1 if d == "A" else 0 for d in data[name]]
+        # bar su svi koeficijenti pozitivni kad se ovako okrene...
+        data[name] = [0 if d == "A" else 1 for d in data[name]]
     return data
 
 
 def categorical_data(data, fun):
     data = fun(data, "zvanje")
-    data = fun(data, "oblast")
-    data = fun(data, "pol")
+    # data = fun(data, "oblast")
+    data = one_hot_encoding(data, "oblast")
+    data = one_hot_encoding(data, "pol")
+    # data = fun(data, "pol")
+
+    if "bias" not in data:
+        data['bias'] = 1
+
     return data
 
 
@@ -90,10 +116,13 @@ def std_val_nor(data):
 
 def z_score_normalization(data, mean_val, std_val):
     for i, col in enumerate(data):
-        if col == "pol" or col == "oblast":  # fora je su samo 0 ili 1 pa ne treba
+        if col == "pol_Male" or\
+                col == "oblast_A" or col == "oblast_A"\
+                or col == "pol_Female" or col == "bias":
             continue
-        for idx, row in enumerate(data[col]):
-            data.at[idx, col] = (row - mean_val[i]) / std_val[i]
+        if  col == "zvanje" or col == "godina_iskustva":
+            for idx, row in enumerate(data[col]):
+                data.at[idx, col] = (row - mean_val[i]) / std_val[i]
     return data
 
 
@@ -113,8 +142,11 @@ def max_values(data):
 
 def min_max_normalization(data, mins, maxs):
     for i, col in enumerate(data):
-        if col == "pol" or col == "oblast":  # fora je su samo 0 ili 1 pa ne treba
+        if col == "pol_Male" or\
+                col == "oblast_A" or col == "oblast_A"\
+                or col == "pol_Female" or col == "bias":  # fora je su samo 0 ili 1 pa ne treba
             continue
+
         for idx, row in enumerate(data[col]):
             # maxs[i] - mins[i] ---> nije bilo u zagradi...
             data.at[idx, col] = (row - mins[i]) / (maxs[i] - mins[i])
@@ -125,33 +157,43 @@ def predict(x, theta):
     return sum(x[i] * theta[i] for i in range(len(theta)))
 
 
-def lasso_coordinate_descent(x, y, step=0.1, l=5):
+def lasso_coordinate_descent(x, y, step=0.1, l=5, max_inter=5000):
     N = len(x)
     D = len(x[0])
     theta = [0.0] * D
     theta = np.asarray(theta, dtype=np.float64)
+    iterations = 0
     while True:
+        iterations += 1
         old_theta = theta.copy()
         for j in range(D):
             r = 0
             for i in range(N):
                 x_predict = x[i].copy()
                 x_predict[j] = 0
+                # kod svakog primera iz skupa je ova koordinata zarznuta
+                # k ce biti predikcija BEZ KOORDINATE za koju odredjujemo TETA
                 k = predict(x_predict, theta)
                 r += x[i][j] * (y[i] - k)
 
-            if r < l / 2:
+            if r < (l / 2):
                 theta[j] = r + l / 2
-            elif r > l / 2:
+            elif r > (l / 2):
                 theta[j] = r - l / 2
             else:
                 theta[j] = 0
         if sum(abs(theta - old_theta)) < step:
             break
+        if iterations >= max_inter:
+            break
     return theta
 
 
-def ridge(x, y, alpha=0.0483, max_iters=500, l=0.000001):
+# 0.000001 --> 1545.468
+# 0.00001 --> 15455.98
+# 0.0001 ---> 15461
+# 1 --> 50k ===> veliko sistemsko odsupanje, ali SMANJE SE KOEFICIJENTI
+def ridge(x, y, alpha=0.0483, max_iters=500, l=0.001):
     N = len(x)
     D = len(x[0])
     theta = [1.0] * D
@@ -222,6 +264,9 @@ def train_validation(train_data, test_data, size=10):
             n = 0
         else:
             n += 1
+
+    # MOZE da se doda da ODREDJUJE labmda za RIDGE sa UNAKRSNOM...
+    # sad za svaku od grupa napravi
     for i in range(0, size):
         x_t = []
         y_t = []
@@ -230,13 +275,16 @@ def train_validation(train_data, test_data, size=10):
                 x_t += groups_x[j]
                 y_t += groups_y[j]
 
+        #napravio train i validacioni
         theta = ridge2(np.asarray(x_t, dtype=np.float64), np.asarray(y_t, dtype=np.float64))
 
-        x = []
+        #izracuna RMESE nad validacionim
         for j in groups_x[i]:
             x.append(predict(j, theta))
         err.append(calculate_rmse(groups_y[i], x))
-        print(err)
+
+
+
     print(sum(err)/len(err))
 
 
@@ -264,30 +312,132 @@ def make_bar_chart(data, column_name, no_bars):
     print(len(values))
 
     plt.bar(bars_values, result, align='center', alpha=0.5)
-
     plt.show()
+
+    check_normal_dist(values)
+
+
+def check_normal_dist(data):
+    pass
+    # # stat, p = normaltest(data)
+    # stat, p = shapiro(data)
+    # print("============================")
+    # print('Statistics=%.3f, p=%.3f' % (stat, p))
+    # # interpret
+    # alpha = 0.05
+    # if p > alpha:
+    #     print('Sample looks Gaussian (fail to reject H0)')
+    # else:
+    #     print('Sample does not look Gaussian (reject H0)')
 
 
 def make_quartile_plot(data, column_name):
+    pass
+    # values = np.asanyarray(data[column_name], dtype=np.float64)
+    # plt.boxplot(values)
+    # for v in values:
+    #     plt.plot(1, v, 'r.', alpha=0.4)
+    # plt.show()
 
-    values = np.asanyarray(data[column_name], dtype=np.float64)
-    plt.boxplot(values)
-    for v in values:
-        plt.plot(1, v, 'r.', alpha=0.4)
-    plt.show()
 
+def remove_outLiers_by_column_name(data, column_name):
+    Q1 = data[column_name].quantile(0.15)
+    Q3 = data[column_name].quantile(0.75)
+    IQR = Q3 - Q1  # IQR is interquartile range.
+
+    #ako je vece od donje granice i manje od gornje onda da
+    # ga IZbACI iz PODACIMA???
+
+    # print(Q1 - 1.5 * IQR)
+
+    new_data = data.drop(data[(data[column_name] <= Q1 - 1.5 * IQR) | (data[column_name] >= Q3 + 1.5 * IQR)].index, inplace=False)
+    new_data = new_data.reset_index(drop=True)
+    return new_data
+
+def show_cov(data):
+
+    cov_matrix = data.cov()
+    print(cov_matrix)
+
+
+def ridgeUgradjeni():
+    pass
+
+
+"""
+    sa Min-Max normalizacijom ako TERAS SVE NA POZITIVNO minimalna greska je za alpha = 0.0001 ==> ok 14.8K
+            ===> ugura na pol i oblast ono da JEDNA BUDE 0 a druga neki broj, bias = 0
+
+    Ako stavimo fit_intercept = 0 ===> jer imamo nas Bias dodat onda nas bias PODESI na mali broj ali
+        greska ostane ista...
+        
+        
+    AKO PREBACIMO NA Z-SCORE GRESKA ista ali SU KOEFICIJENTI MANJI.. ---> uvek stavi godine_iskustva na 0
+
+
+    ako ga probamo kao:
+        LASSO --> kada je l1_ratio = 1 onda radi kao Lasso
+        RIDGE --> l1_ratio = 0
+        
+    
+    kada radi kao Lasso i kada sa Min-Max izvaci odredjena obelezja a to su:
+        a. bias
+        b. pol_female
+        c. godine_iskustva
+        
+    ridge daje SLICNE REZULTATE kao NAS ali MALO BOLJI jer nekako zakuca godine_iskustva na 0...
+
+"""
+def elasticNet(x_train, y_train, x_test, y_test):
+    # alphas = [0.00001, 0.0001, 0.001, 0.01 ,0.1 ,0.2, 0.7]
+    #
+    # for a in alphas:
+    #     model = ElasticNet(
+    #         alpha=a, max_iter=5000, positive=False, fit_intercept=False, l1_ratio=0)\
+    #         .fit(x_train, y_train)
+    #     score = model.score(x_test, y_test)
+    #     pred_y = model.predict(x_test)
+    #     mse = mean_squared_error(y_test, pred_y)
+    #     print("Alpha:{0:.4f}, R2:{1:.2f}, MSE:{2:.2f}, RMSE:{3:.2f}"
+    #           .format(a, score, mse, np.sqrt(mse)))
+    #     print(model.coef_)
+    #     print(model.intercept_)
+    #     print("\n")
+    pass
 
 
 if __name__ == '__main__':
-    trainPath = 'dataset/train.csv'
-    testPath = 'dataset/test_preview.csv'
+
+    trainPath = sys.argv[1]
+    testPath = sys.argv[2]
+
+
+    # trainPath = 'dataset/train.csv'
+    # testPath = 'dataset/test_preview.csv'
 
     train_data = pd.read_csv(trainPath)
     test_data = pd.read_csv(testPath)
 
 
-    # make_quartile_plot(train_data, "godina_iskustva")
-    # make_bar_chart(train_data, "godina_iskustva", 5)
+    # make_quartile_plot(train_data, "plata")
+    # izgleda da godina_iskustva nema normalnu raspodelu...
+        # a vidi se i sa grafika.. da nema najvise ljudi
+        # sa srednjim brojem godina iskustva nego
+
+
+    """
+        izgleda i godine doktor da nemaju normalnu tako kazu oni testovi..
+    
+        ni plata?????
+    
+    """
+
+    # make_bar_chart(train_data, "oblast", 5)
+
+    train_data = remove_outLiers_by_column_name(train_data, "plata")
+    # make_quartile_plot(train_data, "godina_doktor")
+
+    # make_bar_chart(train_data, "plata", 5)
 
     # view_data(train_data, test_data)
     
@@ -295,72 +445,96 @@ if __name__ == '__main__':
     train_data = categorical_data(train_data, label_encoding)
     test_data = categorical_data(test_data, label_encoding)
 
+    # p=0
+    # pAssocProf = 0
+    # pAc = 0
+    # for a in train_data.values:
+    #     if a[0] == 3:
+    #         p += 1
+    #     elif a[0] == 2:
+    #         pAssocProf += 1
+    #     else:
+    #         pAc += 1
+    #
+    # print(p, "\nAssocProf:", pAssocProf, "\nAssProf", pAc)
+    # make_bar_chart(train_data, "zvanje", 3)
+    #
     # print(train_data.columns.values)
-    # train_validation(train_data, test_data)
-
+    #
+    #
+    # # train_validation(train_data, test_data)
+    #
     train_data = train_data.astype('float64')
     y_train = train_data['plata'].to_numpy()
+
     del train_data['plata']
-    # # zasto su izbacena ova 2?
+
+    # zasto su izbacena ova 2?
     # del train_data['godina_doktor']
     # del train_data['godina_iskustva']
 
     # print(train_data[0:10])
-    #
-    # # Z-SCORE i ridge
+
+    # Z-SCORE i ridge
     # mean_val = mean_val_nor(train_data)
     # std_val = std_val_nor(train_data)
     # train_data = z_score_normalization(train_data, mean_val, std_val)
 
-    # MIN-MAX normalizacija i ridge
-    # min_val = min_values(train_data)
-    # max_val = max_values(train_data)
-    # train_data = min_max_normalization(train_data, min_val, max_val)
+    ## MIN-MAX normalizacija i ridge
+    min_val = min_values(train_data)
+    max_val = max_values(train_data)
+    train_data = min_max_normalization(train_data, min_val, max_val)
 
-    #
-    # x_train = train_data.to_numpy()
-    # theta = ridge(x_train, y_train)
-    # print(theta)
-    #
-    # test_data = test_data.astype('float64')
-    # y_test = test_data['plata'].to_numpy()
-    # del test_data['plata']
-    # # del test_data['godina_doktor']
-    # # del test_data['godina_iskustva']
-    #
-    # test_data = min_max_normalization(test_data, min_val, max_val)
-    # x_test = test_data.to_numpy()
-    # x = []
-    # for i in x_test:
-    #     x.append(predict(i, theta))
-    # print(calculate_rmse(y_test, x))
-    
-    #normailzacija i lasso
-    d_norm = d_normalization(train_data)
-    train_data = normalization(train_data, d_norm)
+    # da pokaze kovarijansu odnosno medjuzavisnost izmedju obelezja
+    # show_cov(train_data)
+
     x_train = train_data.to_numpy()
-    # theta = lasso_coordinate_descent(x_train, y_train, step=0.001, l=1)
+    theta = ridge(x_train, y_train)
+    # print(theta)
+
+    test_data = test_data.astype('float64')
+    y_test = test_data['plata'].to_numpy()
+    del test_data['plata']
+    # del test_data['godina_doktor']
+    # del test_data['godina_iskustva']
+
+    # test_data = z_score_normalization(test_data,mean_val,std_val)
+    test_data = min_max_normalization(test_data, min_val, max_val)
+    x_test = test_data.to_numpy()
+    # elasticNet(x_train, y_train, x_test, y_test)
+    x = []
+    for i in x_test:
+        x.append(predict(i, theta))
+    print(calculate_rmse(y_test, x))
+
+
+    #normailzacija i lasso
+    # d_norm = d_normalization(train_data)
+    # train_data = normalization(train_data, d_norm)
+    # x_train = train_data.to_numpy()
+    # theta = lasso_coordinate_descent(x_train, y_train, step=0.001, l=40)
     # print(theta)
 
     ## iteracije da se utvred koja obelezja ne trebaju
-    x = []
-    y = []
-    for i in range(1, 100000, 10000):
-        x.append(i)
-        y.append(lasso_coordinate_descent(x_train, y_train, l=i))
-    y = np.array(y).transpose()
-    print(y)
-    x = [x]*len(y)
-    print(x)
-    for i in range(len(y)):
-        plt.plot(x[i], y[i], i)
-    plt.show()
+    # x = []
+    # y = []
+    # for i in range(1, 100000, 10000):
+    #     x.append(i)
+    #     y.append(lasso_coordinate_descent(x_train, y_train, l=i))
+    # y = np.array(y).transpose()
+    # print(y)
+    # x = [x]*len(y)
+    # print(x)
+    # for i in range(len(y)):
+    #     plt.plot(x[i], y[i], i)
+    # plt.show()
 
 
 
 
 
     # iteracije da se utvrdi alpha za ridge
+    # alpha je LEARNING RATE za GradientDecent
     # x = []
     # y = []
     # z = []
@@ -375,26 +549,63 @@ if __name__ == '__main__':
     #     r = []
     #     for j in x_train:
     #         r.append(predict(j, theta))
-    #     rmse = calculate_rmse(y_test, r)
+    #     #     ovde je bilo y_test ---> a treba y_train
+    #     rmse = calculate_rmse(y_train, r)
     #     z.append(rmse)
-    #     print(i, rmse)
-    # plt.plot(x, y)
-    # plt.plot(x, z)
+    #     # print(i, rmse)
+    # plt.plot(x, y) # RMSE na Test skupu
+    # plt.plot(x, z) # RMSE na Train skupu
     # plt.show()
+    # for alpha, rmse_test, rmse_train in zip(x, y, z):
+    #     print("alpha: ", alpha, " test_rmse:", rmse_test, " train_rmse: ", rmse_train)
     # print(x, y, z)
-    # # 0.0483
-    #
-    # ## iteracije da se utvrdi lambda za ridge
+    # 0.0483 ---> milica dobila
+    # 0.0500 ---> kad sa izbacio outilier-e
+
+
+    # ====================== ODREDJIVANJE LAMBDA KOD RIDGE ++++++++++++++++++++++++++++++++++++=
+
+    # treba namestit
+
+    # ## iteracije da se utvrdi lambda za ridge, fora vec imas postavljen OLS
+    # (je l to znaci da alpha treba ovde da bude zadato.. msm ono je odredjeno vec za OLS)
+    # ili treba njih 2 u kombinaciji da se odredjuju????
+
+    # na Predavanjima Ridge regularizacija kod grafika tamo gde inace stoji alpha je bio samo 1
+
+    # kako ga odabrati?
+    # pa imas u Ridge regularizaciji onaj grafik kad
+        #RMSE test PRESTANE da PADA
+        #RMSE train raste al da ne BUDE BAS BAS...
+
+    # sta ovde ne valja sto tamo malo l da bude??
+
+    # jbt meni samo rastu greske na test_skupu.
+    # OLS ispada najbolji to je kad je l = 0
+    # je l to zato sto sam alpha odredio gledajuci
+    # grafike za train i test, a ne za train i validacioni?
+
     # x = []
     # y = []
-    # for i in np.linspace(0, 10, 20):
+    # z = []
+    # for i in np.linspace(0, 4, 20):
     #     x.append(i)
-    #     theta = ridge(x_train, y_train, alpha=0, l=i)
+    #     theta = ridge(x_train, y_train, alpha=0.0483, l=i)
     #     r = []
     #     for j in x_test:
     #         r.append(predict(j, theta))
     #     rmse = calculate_rmse(y_test, r)
     #     y.append(rmse)
-    #     print(i, rmse)
-    # plt.plot(x, y)
+    #     r = []
+    #     for j in x_train:
+    #         r.append(predict(j, theta))
+    #     #     ovde je bilo y_test ---> a treba y_train
+    #     rmse = calculate_rmse(y_train, r)
+    #     z.append(rmse)
+    #
+    # plt.plot(x, y)  # RMSE na Test skupu
+    # plt.plot(x, z) # RMSE na Train skupu
     # plt.show()
+    # for alpha, rmse_test, rmse_train in zip(x, y, z):
+    #     print("lambda: ", alpha, " test_rmse:", rmse_test, " train_rmse: ", rmse_train)
+
