@@ -1,0 +1,15 @@
+1. u TEST skupu ima jedan naslov sa sa ZVEZDICAMA
+
+    "How Do You Spell Br*nd*n Fr***r's Name" --> mozda ako ima zvezdice da bude veca sansa da je clickBait
+
+2. treba uraditi Deskriptivnu statistiku
+
+    a. top 10 najcescih reci za ClickBait i za Obican
+            ---> BoW iz biblioteke moze da ignorise reci koje se najmanje i najvise pojavljuju..
+
+    b. koliko reci prosecno ima naslov za ClickBait a koliko za Obican
+    c.
+
+
+4. da li da se koristi BiagramReci u onom dokumentu kazu da je obicno BOLJI od 1-grama..s
+    --> daje malo bolje rezultate kod unakrsne validacije
