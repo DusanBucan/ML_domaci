@@ -145,7 +145,7 @@ def statistic(data):
 
 # svaka grupa da ima dobar odnos..
 # podelis dobre na 5, podelis normalne na 5 i onda spajas
-def stratification(clickBaitArticles, notClickBaitArticles, data, k_fold=5):
+def stratification(clickBaitArticles, notClickBaitArticles, k_fold=5):
     folds = {}
 
     numClickBaitArticlePerFold = ceil(len(clickBaitArticles) / k_fold)
