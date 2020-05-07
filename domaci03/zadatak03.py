@@ -72,13 +72,8 @@ def initTfiDf(data):
     return v
 
 
-def initHashVectorization(n_features=None):
-    hv = None
-    if n_features:
-        hv = HashingVectorizer(n_features)
-    else:
-        hv = HashingVectorizer()
-    return hv
+def initHashVectorization(n_features=2**16):
+    return HashingVectorizer(n_features=n_features)
 
 
 def vectorize(data, v):
@@ -122,8 +117,8 @@ def predict(model, data, v):
     # print("score: ",  (good / len(Y_true)), "\n")
     print("F1 score: ", f1Score, "\n")
 
-    print("pogresno klasifikovao tekstove")
-    print(wrongClassified)
+    print("pogresno klasifikovao tekstove", len(wrongClassified))
+    #print(wrongClassified)
 
     return f1Score
 
@@ -187,9 +182,9 @@ def cross_validation(stratified_data):
 
         # skupovi su podeseni sad istreniras i evaluiras na validacionom
         # TODO: odulucti se za jedan od ova 3
-        # v = initHashVectorization()
+        v = initHashVectorization()
         # v = initTfiDf(tr_data)
-        v = initBoW(tr_data)
+        #v = initBoW(tr_data)
         train_model(svm, tr_data, v)
         sum_validation_score += predict(svm, valid_data, v)
         sum_training_score += predict(svm, tr_data, v)
