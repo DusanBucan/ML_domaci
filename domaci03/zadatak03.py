@@ -196,9 +196,9 @@ def cross_validation(stratified_data):
 
         # skupovi su podeseni sad istreniras i evaluiras na validacionom
         # TODO: odulucti se za jedan od ova 3
-        v = initHashVectorization()
-        # v = initTfiDf(tr_data)
-        #v = initBoW(tr_data)
+        # v = initHashVectorization()
+        v = initTfiDf(tr_data)
+        # v = initBoW(tr_data)
         train_model(svm, tr_data, v)
 
         f1, a = predict(svm, valid_data, v)
@@ -211,14 +211,21 @@ def cross_validation(stratified_data):
         
         train_sizes += (len(tr_data))
 
-
+    # print("valid")
     # print("F1")
-    # print(f1_score)
+    # # print(f1_score)
     # print(sum(f1_score)/len(f1_score))
     # print("accuracy")
-    # print(accuracy)
+    # # print(accuracy)
     # print(sum(accuracy)/len(accuracy))
-
+    # print("train")
+    # print("F1")
+    # # print(f1_score_tr)
+    # print(sum(f1_score_tr) / len(f1_score_tr))
+    # print("accuracy")
+    # # print(accuracy_tr)
+    # print(sum(accuracy_tr) / len(accuracy_tr))
+  
 
     retVal["avg_valid_score"] = sum(accuracy_validation) / len(accuracy_validation)
     retVal["avg_tr_score"] = sum(accuracy_train) / len(accuracy_train)
@@ -227,7 +234,7 @@ def cross_validation(stratified_data):
     
 
 
-def statistic(data):
+def statistic_words(data):
     non_dict = {}
     clic_dict = {}
     all_dict = {}
@@ -350,8 +357,8 @@ if __name__ == "__main__":
     preprocess_text(train_data)
     preprocess_text(test_data)
 
-    statistic(train_data)
-
+    statistic_words(train_data)
+    
     plot_learning_curve(train_data)
 
     # CBArticles, notCBArticles = split_articles_by_class(train_data)
