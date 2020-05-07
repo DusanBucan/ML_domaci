@@ -14,8 +14,6 @@
 4. da li da se koristi BiagramReci u onom dokumentu kazu da je obicno BOLJI od 1-grama..s
     --> daje malo bolje rezultate kod unakrsne validacije
 
-
-
 =======================================================================
 
 LINKOVI sto je on dao:
@@ -85,4 +83,184 @@ TREBA POGELDATI:
             - npr postojanje zvezdica u nasvolu
             - postojanje najcesce ponavljanjih reci
             -
+
+
+===============================================================================================
+stopword, click, not
+i 17 3
+me 2 2
+my 13 2
+myself 1 0
+we 109 0
+our 11 1
+ours 0 0
+ourselves 1 0
+you 593 2
+your 303 6
+yours 0 0
+yourself 5 0
+yourselves 0 0
+he 6 5
+him 3 2
+his 47 19
+himself 0 0
+she 14 1
+her 37 5
+hers 0 0
+herself 0 1
+it 51 22
+its 29 32
+itself 0 0
+they 27 0
+them 11 2
+their 82 18
+theirs 1 0
+themselves 5 0
+what 145 3
+which 91 0
+who 137 12
+whom 0 0
+this 249 8
+that 211 15
+these 82 0
+those 0 2
+am 1 3
+is 181 77
+are 252 22
+was 54 15
+were 42 4
+be 67 40
+been 12 0
+being 23 5
+have 67 14
+has 39 15
+had 29 3
+having 6 1
+do 75 2
+does 5 3
+did 12 1
+doing 8 0
+a 347 209
+an 46 22
+the 548 223
+and 191 174
+but 9 19
+if 52 2
+or 57 14
+because 8 1
+as 21 86
+until 0 2
+while 10 7
+of 307 394
+at 61 160
+by 33 87
+for 168 274
+with 145 103
+about 131 19
+against 5 32
+between 8 5
+into 23 16
+through 9 6
+during 20 14
+before 13 9
+after 23 99
+above 0 0
+below 0 2
+to 401 550
+from 85 83
+up 46 34
+down 8 23
+in 249 703
+out 54 25
+on 179 212
+off 6 23
+over 14 79
+under 4 10
+again 7 10
+further 0 2
+then 3 2
+once 1 3
+here 13 1
+there 5 1
+when 52 4
+where 10 4
+why 31 0
+how 138 6
+all 85 8
+any 3 1
+both 2 3
+each 9 0
+few 0 2
+more 33 36
+most 48 6
+other 14 4
+some 6 9
+such 0 0
+no 13 20
+nor 0 0
+not 14 22
+only 41 2
+own 7 3
+same 6 1
+so 28 4
+than 14 12
+too 39 4
+very 6 1
+s 0 1
+t 0 0
+can 95 9
+will 150 16
+just 48 5
+don 0 0
+should 92 3
+now 20 10
+
+
+prvih 20 top reci koje su click
+rec, click, not
+you 593 2
+your 303 6
+this 249 8
+that 211 15
+what 145 3
+how 138 6
+who 137 12
+things 132 1
+people 132 14
+we 109 0
+make 99 9
+17 96 3
+know 94 1
+21 93 4
+which 91 0
+all 85 8
+actually 84 0
+their 82 18
+based 82 3
+these 82 0
+
+
+prvih 20 top reci koje nisu click
+rec, click, not
+
+us 31 195
+new 55 126
+killed 0 63
+wins 0 57
+dies 1 53
+president 1 50
+dead 3 47
+says 2 46
+obama 0 45
+kills 0 45
+two 7 44
+first 28 44
+iraq 0 40
+former 3 38
+court 1 36
+british 10 35
+police 0 35
+uk 1 34
+pakistan 1 33
+australian 0 33
 
