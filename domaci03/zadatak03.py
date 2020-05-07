@@ -5,6 +5,7 @@ from math import ceil
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.svm import LinearSVC
+from sklearn.metrics import confusion_matrix
 
 stopwords = ["i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you", "your", "yours", "yourself",
              "yourselves", "he", "him", "his", "himself", "she", "her", "hers", "herself", "it", "its", "itself",
@@ -64,6 +65,14 @@ def vectorize(data, v):
     vectors = v.transform(corpus)
     return vectors
 
+def calculate_F1_score(Y_true, Y_predicted):
+    tn, fp, fn, tp = confusion_matrix(Y_true, Y_predicted).ravel()
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+    print("precision: ", precision)
+    print("recall: ", recall)
+    return (2 * precision * recall) / (precision + recall)
+
 
 def train_model(model, data, v):
     vectors = vectorize(data, v)
@@ -87,8 +96,9 @@ def predict(model, data, v):
         else:
             wrongClassified.append(data[indx].text)
 
-
-    print("score: ",  (good / len(Y_true)), "\n")
+    f1Score = calculate_F1_score(Y_true, Y_predicted)
+    # print("score: ",  (good / len(Y_true)), "\n")
+    print("F1 score: ", f1Score, "\n")
 
     print("pogresno klasifikovao tekstove")
     print(wrongClassified)
