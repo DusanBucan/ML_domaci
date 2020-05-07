@@ -14,7 +14,78 @@
 4. da li da se koristi BiagramReci u onom dokumentu kazu da je obicno BOLJI od 1-grama..s
     --> daje malo bolje rezultate kod unakrsne validacije
 
+=======================================================================
 
+LINKOVI sto je on dao:
+
+    1. selekcija modela ima za ---> K-FOLD, CrossValidation, Learning Curve, HiperParameter Optimizer
+
+        -- probati Gausov KERNEL
+        -- NB
+        -- LogistickuRegresiju
+
+    2. Metrike ---> confusion_matrix, F1 Score, Precision, Recall, HingeLoss,
+
+    3. Izdvajanje obelezja
+        - to je Bow
+            -- SCORING WORDS IN BoW
+                -- za rec postoji/nepostoji
+                -- broj ponavljanja reci
+                -- ti-itf  (NIJE TAKO DOBAR ZA KRATKE TEKSOTVE, a kod nas su naslovi...)
+
+            -- textpreprocesing(steamming, lemmatization, or normalizing numerical tokens)
+
+        - HashingVectorizer ===> da se proba umesto BoW
+
+
+   4. Selekcija obelezja
+
+        - kao deo PREPORCESINGA pre nego sto pocnes da obucavas model.. (za KLASIFIKACIJU se KORISTI SVM, a REGRESIJU LASSO)
+
+        - da smanji dimenzionalnost
+
+        - brisanje FEATURE sa MALOM VARIJANSOM --> znaci u obe klase se isti broj puta ponavljaju...
+            --> nista neces izvuci iz njih je JEDNAKO POJAVLJUJU u CELOM KORPUSU
+
+        - Univariate feature selection
+
+        - Feature Selection using L1
+
+            -- fora pustis SVM da radi i da smanji broj obelezja (u nasem slucaju ce da izbaci neke reci..)
+
+            -- kao Lasso sto je radio kod Regresije..
+
+        - Tree-based Feature Selection
+
+            - moze da se iskoristi da se izracuna VAZNOST FEATURE-a i onda da se IZBACE ONE koje NISU BITNE
+            - koriste se dosta za slike ===> Soft GORI
+
+
+
+
+
+
+
+    5. SVM --> doc za SVM nisam pregledao
+======================================================================================
+
+TREBA POGELDATI:
+    https://www.aclweb.org/anthology/W18-2502/
+
+    -- proveriti da li ima LOSEG SPELINGA
+
+    -- STOP WORDS mozda TREBA NEKE i da OSTAVIMO..
+
+    -- da li onaj vektor sto ulazi u SVM da se trenira moze da se dodaju jos NEKA OBELEZJA
+
+            ===> INFORMATIVNIJA OBELEZJA
+
+            - npr postojanje zvezdica u nasvolu
+            - postojanje najcesce ponavljanjih reci
+            -
+
+
+===============================================================================================
 stopword, click, not
 i 17 3
 me 2 2
@@ -192,3 +263,4 @@ police 0 35
 uk 1 34
 pakistan 1 33
 australian 0 33
+

@@ -4,6 +4,9 @@ import string
 from math import ceil
 
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import HashingVectorizer
+
 from sklearn.svm import LinearSVC
 from sklearn.metrics import confusion_matrix
 
@@ -21,7 +24,6 @@ stopwords = ["i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you",
 # reci koje su u stopwords a click su
 clic_stopwords = ["we", "you", "your", "yourself", "they", "them", "their", "theirs", "themselves", "what", "which",
                   "who", "this", "that", "these", "why", "how", "all"]
-#0.9508889
 
 class Article:
     def __init__(self, clickbait, text):
@@ -56,11 +58,25 @@ def preprocess_text(data):
         # article.words = article.processedText.split(' ')
         # print(article.words)
 
+
 def initBoW(data):
     corpus = [article.processedText for article in data]
-    v = CountVectorizer(ngram_range=(1, 2))
+    # v = CountVectorizer()
+    v = CountVectorizer(ngram_range=(1, 2), binary=False)
+    # v = CountVectorizer(ngram_range=(1, 2), binary=True)
     v.fit(corpus)
     return v
+
+
+def initTfiDf(data):
+    corpus = [article.processedText for article in data]
+    v = TfidfVectorizer()
+    v.fit(corpus)
+    return v
+
+
+def initHashVectorization(n_features=2**16):
+    return HashingVectorizer(n_features=n_features)
 
 
 def vectorize(data, v):
@@ -103,13 +119,13 @@ def predict(model, data, v):
     f1Score = calculate_F1_score(Y_true, Y_predicted)
     # print("score: ",  (good / len(Y_true)), "\n")
     print("F1 score: ", f1Score, "\n")
+    print("pogresno klasifikovao tekstove", len(wrongClassified))
+    #print(wrongClassified)
 
-    print("pogresno klasifikovao tekstove")
-    print(wrongClassified)
-    return good / len(Y_true)
+    return f1Score, (good / len(Y_true))
+
 
 def statistic(data):
-
     total = len(data)
     clbNo = 0
     normalnNo = 0
@@ -120,17 +136,14 @@ def statistic(data):
             normalnNo += 1
 
     print("total: ", total)
-    print("clickbait: ", clbNo/total)
-    print("normal: ", normalnNo/total)
+    print("clickbait: ", clbNo / total)
+    print("normal: ", normalnNo / total)
 
-#svaka grupa da ima dobar odnos..
-#podelis dobre na 5, podelis normalne na 5 i onda spajas
-def stratification(data, k_fold=10):
 
+# svaka grupa da ima dobar odnos..
+# podelis dobre na 5, podelis normalne na 5 i onda spajas
+def stratification(clickBaitArticles, notClickBaitArticles, k_fold=5):
     folds = {}
-
-    clickBaitArticles = [article for article in data if article.clickbait]
-    notClickBaitArticles = [article for article in data if not article.clickbait]
 
     numClickBaitArticlePerFold = ceil(len(clickBaitArticles) / k_fold)
     numNotClickBaitArticlesPerFold = ceil(len(notClickBaitArticles) / k_fold)
@@ -139,7 +152,7 @@ def stratification(data, k_fold=10):
     for i in range(0, len(clickBaitArticles), numClickBaitArticlePerFold):
         if j not in folds.keys():
             folds[j] = []
-        a = clickBaitArticles[i: i+numClickBaitArticlePerFold]
+        a = clickBaitArticles[i: i + numClickBaitArticlePerFold]
         folds[j].append(a)
         j += 1
 
@@ -158,6 +171,9 @@ def stratification(data, k_fold=10):
 def cross_validation(stratified_data):
     accuracy = []
 
+    retVal = {}
+    sum_validation_score = 0
+    sum_training_score = 0
     for key in stratified_data.keys():
         tr_data = []
         valid_data = stratified_data[key]
@@ -167,12 +183,22 @@ def cross_validation(stratified_data):
             if key2 != key:
                 tr_data += stratified_data[key2]
 
-        #skupovi su podeseni sad istreniras i evaluiras na validacionom
-        v = initBoW(tr_data)
+        # skupovi su podeseni sad istreniras i evaluiras na validacionom
+        # TODO: odulucti se za jedan od ova 3
+        v = initHashVectorization()
+        # v = initTfiDf(tr_data)
+        #v = initBoW(tr_data)
         train_model(svm, tr_data, v)
         accuracy.append(predict(svm, valid_data, v))
     print(accuracy)
     print(sum(accuracy)/len(accuracy))
+        sum_validation_score += predict(svm, valid_data, v)
+        sum_training_score += predict(svm, tr_data, v)
+
+
+    retVal["avg_valid_score"] = sum_validation_score / len(stratified_data.keys())
+    retVal["avg_tr_score"] = sum_training_score / len(stratified_data.keys())
+    return retVal
 
 
 def statistic(data):
@@ -236,6 +262,34 @@ def statistic(data):
 
 
 
+def split_articles_by_class(data):
+    clickBaitArticles = [article for article in data if article.clickbait]
+    notClickBaitArticles = [article for article in data if not article.clickbait]
+    return clickBaitArticles, notClickBaitArticles
+
+# koliko ces da uzmes iz svakog fold-a
+def plot_learning_curve(data):
+
+    training_scores = []
+    test_scores = []
+    data_size = [0.3, 0.4, 0.6, 0.7, 0.8, 0.9, 1]
+    clickBaitArticles, notClickBaitArticles = split_articles_by_class(data)
+
+
+    for size in data_size:
+        cbArtl = clickBaitArticles[0:len(clickBaitArticles)*size]
+        notCbAtrl = notClickBaitArticles[0:len(notClickBaitArticles)]
+        folds_ = stratification(cbArtl, notCbAtrl)
+        scores_for_size = cross_validation(folds_)
+        training_scores.append(scores_for_size["avg_tr_score"])
+        test_scores.append(scores_for_size["avg_valid_score"])
+
+
+    # TODO: da se plotuje grafik
+
+
+
+
 if __name__ == "__main__":
     train_path = sys.argv[1]
     test_path = sys.argv[2]
@@ -248,6 +302,8 @@ if __name__ == "__main__":
 
     statistic(train_data)
     folds = stratification(train_data)
+    CBArticles, notCBArticles = split_articles_by_class(train_data)
+    folds = stratification(CBArticles, notCBArticles)
     cross_validation(folds)
 
     # svm = LinearSVC()
