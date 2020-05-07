@@ -142,7 +142,7 @@ def statistic(data):
 
 # svaka grupa da ima dobar odnos..
 # podelis dobre na 5, podelis normalne na 5 i onda spajas
-def stratification(clickBaitArticles, notClickBaitArticles, k_fold=5):
+def stratification(clickBaitArticles, notClickBaitArticles, k_fold=10):
     folds = {}
 
     numClickBaitArticlePerFold = ceil(len(clickBaitArticles) / k_fold)
@@ -170,10 +170,8 @@ def stratification(clickBaitArticles, notClickBaitArticles, k_fold=5):
 
 def cross_validation(stratified_data):
     accuracy = []
+    f1_score = []
 
-    retVal = {}
-    sum_validation_score = 0
-    sum_training_score = 0
     for key in stratified_data.keys():
         tr_data = []
         valid_data = stratified_data[key]
@@ -189,16 +187,16 @@ def cross_validation(stratified_data):
         # v = initTfiDf(tr_data)
         #v = initBoW(tr_data)
         train_model(svm, tr_data, v)
-        accuracy.append(predict(svm, valid_data, v))
+        f1, a = predict(svm, valid_data, v)
+        f1_score.append(f1)
+        accuracy.append(a)
+
+    print("F1")
+    print(f1_score)
+    print(sum(f1_score)/len(f1_score))
+    print("accuracy")
     print(accuracy)
     print(sum(accuracy)/len(accuracy))
-        sum_validation_score += predict(svm, valid_data, v)
-        sum_training_score += predict(svm, tr_data, v)
-
-
-    retVal["avg_valid_score"] = sum_validation_score / len(stratified_data.keys())
-    retVal["avg_tr_score"] = sum_training_score / len(stratified_data.keys())
-    return retVal
 
 
 def statistic(data):
@@ -301,7 +299,6 @@ if __name__ == "__main__":
     preprocess_text(test_data)
 
     statistic(train_data)
-    folds = stratification(train_data)
     CBArticles, notCBArticles = split_articles_by_class(train_data)
     folds = stratification(CBArticles, notCBArticles)
     cross_validation(folds)
