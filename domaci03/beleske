@@ -288,3 +288,13 @@ F1
 0.9996390354274162
 accuracy
 0.999679012345679
+
+
+#najbolji rezultat
+probala sam sve vektore
+najbolji rezultat
+sam dobila
+TfidfVectorizer(ngram_range=(1, 2))
+i kad je C 2.5
+rezultat je 0.9586666666666666 kad se train podeli na 5
+a za test je 1

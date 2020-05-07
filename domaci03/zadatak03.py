@@ -73,10 +73,11 @@ def initBoW(data):
 
 def initTfiDf(data):
     corpus = [article.processedText for article in data]
-    v = TfidfVectorizer()
+    v = TfidfVectorizer(ngram_range=(1, 2))
     v.fit(corpus)
     return v
-
+# 0.9566666666666667
+# 0.9586666666666666
 
 def initHashVectorization(n_features=2**16):
     return HashingVectorizer(n_features=n_features)
@@ -188,7 +189,7 @@ def cross_validation(stratified_data):
     for key in stratified_data.keys():
         tr_data = []
         valid_data = stratified_data[key]
-        svm = LinearSVC()
+        svm = LinearSVC(C=2.5)
 
         for key2 in stratified_data.keys():
             if key2 != key:
@@ -208,24 +209,24 @@ def cross_validation(stratified_data):
         f1, a = predict(svm, tr_data, v)
         f1_score_train.append(f1)
         accuracy_train.append(a)
-        
+
         train_sizes += (len(tr_data))
 
-    # print("valid")
-    # print("F1")
-    # # print(f1_score)
-    # print(sum(f1_score)/len(f1_score))
-    # print("accuracy")
-    # # print(accuracy)
-    # print(sum(accuracy)/len(accuracy))
-    # print("train")
-    # print("F1")
-    # # print(f1_score_tr)
-    # print(sum(f1_score_tr) / len(f1_score_tr))
-    # print("accuracy")
-    # # print(accuracy_tr)
-    # print(sum(accuracy_tr) / len(accuracy_tr))
-  
+    print("valid")
+    print("F1")
+    # print(f1_score)
+    print(sum(f1_score_validation)/len(f1_score_validation))
+    print("accuracy")
+    # print(accuracy)
+    print(sum(accuracy_validation)/len(accuracy_validation))
+    print("train")
+    print("F1")
+    # print(f1_score_tr)
+    print(sum(f1_score_train) / len(f1_score_train))
+    print("accuracy")
+    # print(accuracy_tr)
+    print(sum(accuracy_train) / len(accuracy_train))
+
 
     retVal["avg_valid_score"] = sum(accuracy_validation) / len(accuracy_validation)
     retVal["avg_tr_score"] = sum(accuracy_train) / len(accuracy_train)
@@ -357,15 +358,15 @@ if __name__ == "__main__":
     preprocess_text(train_data)
     preprocess_text(test_data)
 
-    statistic_words(train_data)
+    # statistic_words(train_data)
     
-    plot_learning_curve(train_data)
+    # plot_learning_curve(train_data)
 
     # CBArticles, notCBArticles = split_articles_by_class(train_data)
     # folds = stratification(CBArticles, notCBArticles)
     # cross_validation(folds)
 
-    # svm = LinearSVC()
-    # vectorizer = initBoW(train_data)
-    # train_model(svm, train_data, vectorizer)
-    # predict(svm, test_data, vectorizer)
+    svm = LinearSVC(C=2.5)
+    vectorizer = initTfiDf(train_data)
+    train_model(svm, train_data, vectorizer)
+    print(predict(svm, test_data, vectorizer))
