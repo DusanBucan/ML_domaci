@@ -2,6 +2,8 @@ import sys
 import json
 import string
 from math import ceil
+import matplotlib.pyplot as plt
+import numpy as np
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -9,6 +11,7 @@ from sklearn.feature_extraction.text import HashingVectorizer
 
 from sklearn.svm import LinearSVC
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
 
 stopwords = ["i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you", "your", "yours", "yourself",
              "yourselves", "he", "him", "his", "himself", "she", "her", "hers", "herself", "it", "its", "itself",
@@ -72,13 +75,9 @@ def initTfiDf(data):
     return v
 
 
-def initHashVectorization(n_features=None):
-    hv = None
-    if n_features:
-        hv = HashingVectorizer(n_features)
-    else:
-        hv = HashingVectorizer()
-    return hv
+def initHashVectorization(n_features=2**16):
+    return HashingVectorizer(n_features)
+
 
 
 def vectorize(data, v):
@@ -91,9 +90,12 @@ def calculate_F1_score(Y_true, Y_predicted):
     tn, fp, fn, tp = confusion_matrix(Y_true, Y_predicted).ravel()
     precision = tp / (tp + fp)
     recall = tp / (tp + fn)
-    print("precision: ", precision)
-    print("recall: ", recall)
+    #print("precision: ", precision)
+    #print("recall: ", recall)
     return (2 * precision * recall) / (precision + recall)
+
+def calculate_accuracy(Y_true, Y_predicted):
+    return  accuracy_score(Y_true, Y_predicted)
 
 
 def train_model(model, data, v):
@@ -101,7 +103,7 @@ def train_model(model, data, v):
     X = [vector.toarray()[0] for vector in vectors]
     Y = [article.clickbait for article in data]
     model.fit(X, Y)
-    print(" ===== gotov trening =====")
+    #print(" ===== gotov trening =====")
 
 
 def predict(model, data, v):
@@ -119,13 +121,14 @@ def predict(model, data, v):
             wrongClassified.append(data[indx].text)
 
     f1Score = calculate_F1_score(Y_true, Y_predicted)
+    accuracy = calculate_accuracy(Y_true, Y_predicted)
+
     # print("score: ",  (good / len(Y_true)), "\n")
-    print("F1 score: ", f1Score, "\n")
+    #print("F1 score: ", f1Score, "\n")
+    #print("pogresno klasifikovao tekstove")
+    #print(wrongClassified)
 
-    print("pogresno klasifikovao tekstove")
-    print(wrongClassified)
-
-    return f1Score
+    return accuracy
 
 
 def statistic(data):
@@ -175,9 +178,10 @@ def cross_validation(stratified_data):
     retVal = {}
     sum_validation_score = 0
     sum_training_score = 0
+    train_sizes = 0
     for key in stratified_data.keys():
         tr_data = []
-        valid_data = folds[key]
+        valid_data = stratified_data[key]
         svm = LinearSVC()
 
         for key2 in stratified_data.keys():
@@ -193,13 +197,12 @@ def cross_validation(stratified_data):
         train_model(svm, tr_data, v)
         sum_validation_score += predict(svm, valid_data, v)
         sum_training_score += predict(svm, tr_data, v)
-
+        train_sizes += (len(tr_data))
 
     retVal["avg_valid_score"] = sum_validation_score / len(stratified_data.keys())
     retVal["avg_tr_score"] = sum_training_score / len(stratified_data.keys())
+    retVal["trainin_set_sizes"] = int(train_sizes / len(stratified_data.keys()))
     return retVal
-
-
 
 
 def split_articles_by_class(data):
@@ -212,21 +215,46 @@ def plot_learning_curve(data):
 
     training_scores = []
     test_scores = []
+    training_size = []
     data_size = [0.3, 0.4, 0.6, 0.7, 0.8, 0.9, 1]
     clickBaitArticles, notClickBaitArticles = split_articles_by_class(data)
 
 
     for size in data_size:
-        cbArtl = clickBaitArticles[0:len(clickBaitArticles)*size]
-        notCbAtrl = notClickBaitArticles[0:len(notClickBaitArticles)]
+        cbArtl = clickBaitArticles[0: int(len(clickBaitArticles)*size)]
+        notCbAtrl = notClickBaitArticles[0: int(len(notClickBaitArticles))]
         folds_ = stratification(cbArtl, notCbAtrl)
         scores_for_size = cross_validation(folds_)
         training_scores.append(scores_for_size["avg_tr_score"])
         test_scores.append(scores_for_size["avg_valid_score"])
+        training_size.append(scores_for_size["trainin_set_sizes"])
 
 
     # TODO: da se plotuje grafik
+    plt.xlabel("Training examples")
+    plt.ylabel("Score")
+    #
+    train_scores_mean = np.mean(training_scores)
+    train_scores_std = np.std(training_scores)
+    test_scores_mean = np.mean(test_scores)
+    test_scores_std = np.std(test_scores)
+    plt.grid()
 
+    plt.fill_between(training_size, train_scores_mean - train_scores_std,
+                     train_scores_mean + train_scores_std, alpha=0.1,
+                     color="r")
+    plt.fill_between(training_size, test_scores_mean - test_scores_std,
+                     test_scores_mean + test_scores_std, alpha=0.1, color="g")
+    plt.plot(training_size, training_scores, 'o-', color="r",
+             label="Training score")
+    plt.plot(training_size, test_scores, 'o-', color="g",
+             label="Cross-validation score")
+
+    plt.legend(loc="best")
+    plt.show()
+    print(training_size)
+    print(training_scores)
+    print(test_scores)
 
 
 
@@ -240,9 +268,11 @@ if __name__ == "__main__":
     preprocess_text(train_data)
     preprocess_text(test_data)
 
-    CBArticles, notCBArticles = split_articles_by_class(train_data)
-    folds = stratification(CBArticles, notCBArticles)
-    cross_validation(folds)
+    plot_learning_curve(train_data)
+
+    # CBArticles, notCBArticles = split_articles_by_class(train_data)
+    # folds = stratification(CBArticles, notCBArticles)
+    # cross_validation(folds)
 
     # svm = LinearSVC()
     # vectorizer = initBoW(train_data)
