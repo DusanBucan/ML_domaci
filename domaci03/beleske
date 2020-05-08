@@ -20,7 +20,7 @@ LINKOVI sto je on dao:
 
     1. selekcija modela ima za ---> K-FOLD, CrossValidation, Learning Curve, HiperParameter Optimizer
 
-        -- probati Gausov KERNEL
+        -- probati Gausov KERNEL (nije nesto bolje radi Linearno, za njega je bio potreban Feature Selection)
         -- NB
         -- LogistickuRegresiju
 
@@ -61,28 +61,23 @@ LINKOVI sto je on dao:
             - koriste se dosta za slike ===> Soft GORI
 
 
-
-
-
-
-
     5. SVM --> doc za SVM nisam pregledao
+        - linearni
+            - mozda malo bolji ako klasi 1 damo
+
+        - gausov kernel
+            - sporo radi a nisam jos dobio bolje rez..
+
 ======================================================================================
 
 TREBA POGELDATI:
     https://www.aclweb.org/anthology/W18-2502/
 
-    -- proveriti da li ima LOSEG SPELINGA
-
-    -- STOP WORDS mozda TREBA NEKE i da OSTAVIMO..
 
     -- da li onaj vektor sto ulazi u SVM da se trenira moze da se dodaju jos NEKA OBELEZJA
-
             ===> INFORMATIVNIJA OBELEZJA
-
             - npr postojanje zvezdica u nasvolu
             - postojanje najcesce ponavljanjih reci
-            -
 
 
 ===============================================================================================
@@ -298,3 +293,6 @@ TfidfVectorizer(ngram_range=(1, 2))
 i kad je C 2.5
 rezultat je 0.9586666666666666 kad se train podeli na 5
 a za test je 1
+
+
+

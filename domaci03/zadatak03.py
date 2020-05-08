@@ -1,15 +1,18 @@
 import sys
 import json
 import string
-from math import ceil
-import matplotlib.pyplot as plt
+# from math import ceil
+# import matplotlib.pyplot as plt
 import numpy as np
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import HashingVectorizer
 
+from sklearn.feature_selection import SelectFromModel
+
 from sklearn.svm import LinearSVC
+from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 
@@ -27,6 +30,9 @@ stopwords = ["i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you",
 # reci koje su u stopwords a click su
 clic_stopwords = ["we", "you", "your", "yourself", "they", "them", "their", "theirs", "themselves", "what", "which",
                   "who", "this", "that", "these", "why", "how", "all"]
+
+
+notCB_words = ["us","new","killed","wins""dies","president","dead","says","obama","kills","two","first","iraq","former","court","british","police","uk","pakistan","australian"]
 
 class Article:
     def __init__(self, clickbait, text):
@@ -101,17 +107,34 @@ def calculate_accuracy(Y_true, Y_predicted):
     return  accuracy_score(Y_true, Y_predicted)
 
 
-def train_model(model, data, v):
-    vectors = vectorize(data, v)
-    X = [vector.toarray()[0] for vector in vectors]
-    Y = [article.clickbait for article in data]
-    model.fit(X, Y)
+def train_model(model, data, v, useFeatureSelection=False):
+
+    if not useFeatureSelection:
+        vectors = vectorize(data, v)
+        X = [vector.toarray()[0] for vector in vectors]
+        Y = [article.clickbait for article in data]
+        model.fit(X, Y)
+        return None
+    else:
+        X, Y, featureSelector = selectFeaturesUsingSVM(data, v)
+        model.fit(X, Y)
+        return featureSelector
+
     #print(" ===== gotov trening =====")
 
 
-def predict(model, data, v):
+#mora da bude tu taj koji selektuje oblezja vec prosledjen...
+def predict(model, data, v, featureSelector=None):
+
     vectors = vectorize(data, v)
     X = [vector.toarray()[0] for vector in vectors]
+
+    # print(len(X[0]))
+    if featureSelector:
+        X = featureSelector.transform(X)
+    #
+    # print(len(X[0]))
+
     Y_true = [article.clickbait for article in data]
     Y_predicted = model.predict(X)
 
@@ -154,8 +177,8 @@ def statistic(data):
 def stratification(clickBaitArticles, notClickBaitArticles, k_fold=5):
     folds = {}
 
-    numClickBaitArticlePerFold = ceil(len(clickBaitArticles) / k_fold)
-    numNotClickBaitArticlesPerFold = ceil(len(notClickBaitArticles) / k_fold)
+    numClickBaitArticlePerFold = int(np.ceil(len(clickBaitArticles) / k_fold))
+    numNotClickBaitArticlesPerFold = int(np.ceil(len(notClickBaitArticles) / k_fold))
 
     j = 0
     for i in range(0, len(clickBaitArticles), numClickBaitArticlePerFold):
@@ -186,46 +209,57 @@ def cross_validation(stratified_data):
     f1_score_validation = []
     f1_score_train = []
 
-    for key in stratified_data.keys():
-        tr_data = []
-        valid_data = stratified_data[key]
-        svm = LinearSVC(C=2.5)
+    # C_values = [1, 1.2, 1.5, 2.5]
+    # gamma_values = [0.2, 0.5, 1]  #sto veca vrednost to ce biti manja oblast oko losije radi nego Linearni
 
-        for key2 in stratified_data.keys():
-            if key2 != key:
-                tr_data += stratified_data[key2]
+    C_values = [2.5]
+    gamma_values = [1]
 
-        # skupovi su podeseni sad istreniras i evaluiras na validacionom
-        # TODO: odulucti se za jedan od ova 3
-        # v = initHashVectorization()
-        v = initTfiDf(tr_data)
-        # v = initBoW(tr_data)
-        train_model(svm, tr_data, v)
+    for C_value in C_values:
+        for gamma_value in gamma_values:
+            for key in stratified_data.keys():
+                tr_data = []
+                valid_data = stratified_data[key]
+                svm = LinearSVC(C=C_value, max_iter=10000000)
+                # svm = SVC(gamma=gamma_value, C=C_value)
 
-        f1, a = predict(svm, valid_data, v)
-        f1_score_validation.append(f1)
-        accuracy_validation.append(a)
+                for key2 in stratified_data.keys():
+                    if key2 != key:
+                        tr_data += stratified_data[key2]
 
-        f1, a = predict(svm, tr_data, v)
-        f1_score_train.append(f1)
-        accuracy_train.append(a)
+                # skupovi su podeseni sad istreniras i evaluiras na validacionom
+                # TODO: odulucti se za jedan od ova 3
+                # v = initHashVectorization()
+                v = initTfiDf(tr_data)
+                # v = initBoW(tr_data)
+                featureSelector = train_model(svm, tr_data, v, False)
 
-        train_sizes += (len(tr_data))
+                f1, a = predict(svm, valid_data, v, featureSelector)
+                f1_score_validation.append(f1)
+                accuracy_validation.append(a)
 
-    print("valid")
-    print("F1")
-    # print(f1_score)
-    print(sum(f1_score_validation)/len(f1_score_validation))
-    print("accuracy")
-    # print(accuracy)
-    print(sum(accuracy_validation)/len(accuracy_validation))
-    print("train")
-    print("F1")
-    # print(f1_score_tr)
-    print(sum(f1_score_train) / len(f1_score_train))
-    print("accuracy")
-    # print(accuracy_tr)
-    print(sum(accuracy_train) / len(accuracy_train))
+                f1, a = predict(svm, tr_data, v, featureSelector)
+                f1_score_train.append(f1)
+                accuracy_train.append(a)
+
+                train_sizes += (len(tr_data))
+
+            print("C value: ", C_value)
+            # print("C value: ", C_value, "gamma value: ", gamma_value)
+            print("valid")
+            print("F1")
+            # print(f1_score)
+            print(sum(f1_score_validation)/len(f1_score_validation))
+            print("accuracy")
+            # print(accuracy)
+            print(sum(accuracy_validation)/len(accuracy_validation))
+            print("train")
+            print("F1")
+            # print(f1_score_tr)
+            print(sum(f1_score_train) / len(f1_score_train))
+            print("accuracy")
+            # print(accuracy_tr)
+            print(sum(accuracy_train) / len(accuracy_train))
 
 
     retVal["avg_valid_score"] = sum(accuracy_validation) / len(accuracy_validation)
@@ -233,7 +267,6 @@ def cross_validation(stratified_data):
     retVal["trainin_set_sizes"] = int(train_sizes / len(stratified_data.keys()))
     return retVal
     
-
 
 def statistic_words(data):
     non_dict = {}
@@ -300,51 +333,95 @@ def split_articles_by_class(data):
     return clickBaitArticles, notClickBaitArticles
 
 # koliko ces da uzmes iz svakog fold-a
-def plot_learning_curve(data):
+# def plot_learning_curve(data):
+#
+#     training_scores = []
+#     test_scores = []
+#     training_size = []
+#     # data_size = [0.3, 0.4, 0.6, 0.7, 0.8, 0.9, 1]
+#     data_size = [0.3, 0.7, 1]
+#     clickBaitArticles, notClickBaitArticles = split_articles_by_class(data)
+#
+#
+#     for size in data_size:
+#         cbArtl = clickBaitArticles[0: int(len(clickBaitArticles)*size)]
+#         notCbAtrl = notClickBaitArticles[0: int(len(notClickBaitArticles))]
+#         folds_ = stratification(cbArtl, notCbAtrl)
+#         scores_for_size = cross_validation(folds_)
+#         training_scores.append(scores_for_size["avg_tr_score"])
+#         test_scores.append(scores_for_size["avg_valid_score"])
+#         training_size.append(scores_for_size["trainin_set_sizes"])
+#
+#
+#     plt.xlabel("Training examples")
+#     plt.ylabel("Score")
+#     #
+#     train_scores_mean = np.mean(training_scores)
+#     train_scores_std = np.std(training_scores)
+#     test_scores_mean = np.mean(test_scores)
+#     test_scores_std = np.std(test_scores)
+#     plt.grid()
+#
+#     plt.fill_between(training_size, train_scores_mean - train_scores_std,
+#                      train_scores_mean + train_scores_std, alpha=0.1,
+#                      color="r")
+#     plt.fill_between(training_size, test_scores_mean - test_scores_std,
+#                      test_scores_mean + test_scores_std, alpha=0.1, color="g")
+#     plt.plot(training_size, training_scores, 'o-', color="r",
+#              label="Training score")
+#     plt.plot(training_size, test_scores, 'o-', color="g",
+#              label="Cross-validation score")
+#
+#     plt.legend(loc="best")
+#     plt.show()
+#     print(training_size)
+#     print(training_scores)
+#     print(test_scores)
 
-    training_scores = []
-    test_scores = []
-    training_size = []
-    # data_size = [0.3, 0.4, 0.6, 0.7, 0.8, 0.9, 1]
-    data_size = [0.3, 0.7, 1]
-    clickBaitArticles, notClickBaitArticles = split_articles_by_class(data)
 
+# da proveris koliko neka rec ili neke reci uticu na to da nesto bude clickBait...
+def checkCoef(model, v, words):
 
-    for size in data_size:
-        cbArtl = clickBaitArticles[0: int(len(clickBaitArticles)*size)]
-        notCbAtrl = notClickBaitArticles[0: int(len(notClickBaitArticles))]
-        folds_ = stratification(cbArtl, notCbAtrl)
-        scores_for_size = cross_validation(folds_)
-        training_scores.append(scores_for_size["avg_tr_score"])
-        test_scores.append(scores_for_size["avg_valid_score"])
-        training_size.append(scores_for_size["trainin_set_sizes"])
+    word_coef = []
+    for word in words:
+        indx = v.vocabulary_.get(word)
+        if indx:
+            cf = model.coef_[0][indx]
+            word_coef.append((word, cf))
 
+    word_coef.sort(key=lambda x: x[1], reverse=True)
 
-    # TODO: da se plotuje grafik
-    plt.xlabel("Training examples")
-    plt.ylabel("Score")
+    for w_c in word_coef:
+        print(w_c)
+
+# da izbacimo obelezja uz pomoc Linearnog SVM-a
+#moze se probati i sa malom VARIJANSOM ---> to bi bile reci koje su u obe klase...
+
+# kad uradi vectorize ---> transform ce da ti da
+
+def selectFeaturesUsingSVM(data, v):
+
+    svm = LinearSVC(C=2.4, penalty="l1", dual=False)
+    train_model(svm, data, v)
+    # checkCoef(svm, v, clic_stopwords)
+
+    #vektorizujes ceo trening skup svaki od x msm da ima po 3k elemenata...
+    vectors = vectorize(data, v)
+    X = [vector.toarray()[0] for vector in vectors]
     #
-    train_scores_mean = np.mean(training_scores)
-    train_scores_std = np.std(training_scores)
-    test_scores_mean = np.mean(test_scores)
-    test_scores_std = np.std(test_scores)
-    plt.grid()
+    # print("pre izdvajanja: ", len(X[0]))
+    #
+    model = SelectFromModel(svm, prefit=True)
+    new_X = model.transform(X)
+    # print("posle izdavanja:", len(new_X[0]))
 
-    plt.fill_between(training_size, train_scores_mean - train_scores_std,
-                     train_scores_mean + train_scores_std, alpha=0.1,
-                     color="r")
-    plt.fill_between(training_size, test_scores_mean - test_scores_std,
-                     test_scores_mean + test_scores_std, alpha=0.1, color="g")
-    plt.plot(training_size, training_scores, 'o-', color="r",
-             label="Training score")
-    plt.plot(training_size, test_scores, 'o-', color="g",
-             label="Cross-validation score")
 
-    plt.legend(loc="best")
-    plt.show()
-    print(training_size)
-    print(training_scores)
-    print(test_scores)
+    #kad vratis normlano X ---> tu budu oni koji treba a ostali budu na 0
+    #tad se bolje obuci... hhahaha
+
+    Y = [article.clickbait for article in data]
+    return new_X, Y, model
+
 
 
 
@@ -366,7 +443,10 @@ if __name__ == "__main__":
     # folds = stratification(CBArticles, notCBArticles)
     # cross_validation(folds)
 
+    # checkCoef(svm, vectorizer, clic_stopwords)
+
     svm = LinearSVC(C=2.5)
     vectorizer = initTfiDf(train_data)
-    train_model(svm, train_data, vectorizer)
-    print(predict(svm, test_data, vectorizer))
+    train_model(svm, train_data, vectorizer, False)
+    f1Score, accuracy = predict(svm, test_data, vectorizer)
+    print(accuracy)
