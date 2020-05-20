@@ -45,7 +45,13 @@ if __name__ == '__main__':
     del train_data['speed']
     X_train = train_data.to_numpy()
 
-
     clf = RandomForestClassifier(n_estimators=10)
     clf = clf.fit(X_train, Y_train)
 
+    Y_test = test_data['speed'].to_numpy()
+    del test_data['speed']
+    X_test = test_data.to_numpy()
+
+    Y_predict = clf.predict(X_test)
+    score = calculate_micro_f1_score(Y_test, Y_predict)
+    print(score)

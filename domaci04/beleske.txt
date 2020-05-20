@@ -8,3 +8,5 @@ Uklanjanje NaN vrednosti iz trening skupa:
         - za kategoricka obelezja koristiti medijan, a za numericka sr.vrednost ili medijan
     4. nacin: koriscenje regresionom metodom, KNN, expectation-maximization
 
+Obican RandomForestClassifier
+    - score: 0.5637583892617449 na test_preview.csv
