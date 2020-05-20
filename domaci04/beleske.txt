@@ -1,0 +1,10 @@
+Uklanjanje NaN vrednosti iz trening skupa:
+    1. nacin: prociscavanje podataka
+        - ukloniti sve opservacije koje sadrze NaN, mana je sto gubimo podatke
+        - probao sam: od 18351 ostane nam 18172 opservacija
+    2. nacin: ukloniti obelezja sa nedostajucim vrednostima
+        - 10/14 obelezja ima NaN vrednosti, pa mislim da ovo nije dobro resenje
+    3. nacin: procena nedostajucih vrednosti
+        - za kategoricka obelezja koristiti medijan, a za numericka sr.vrednost ili medijan
+    4. nacin: koriscenje regresionom metodom, KNN, expectation-maximization
+
