@@ -25,7 +25,7 @@ def preprocess_data(data):
 
     return data
 
-def predict(y_true, y_pred):
+def calculate_micro_f1_score(y_true, y_pred):
     return f1_score(y_true, y_pred, average='micro')
 
 if __name__ == '__main__':
