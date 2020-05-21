@@ -15,5 +15,16 @@ Obican RandomForestClassifier
 21.5.2020
 
 -- vidi se neizbalansiranost klasa
-
 -- ali distribucija klasa je jednaka i na treing i na test
+
+
+AdaBoostClassifier(learning_rate=0.1, n_estimators=900) -- 0.55 na test_preview
+    --> featureSelection sa 50 stabala je SPUSTIO score.
+
+
+OBINCE METODE ---> pisem ih da bi znali od cega ansambl mora biti bolji..
+
+    - obican SVM, sa C=2 dobije 0.523 znaci da je Ansambl ipak bolji..
+
+    - obican SVM, sa C=2 kad se uradi normalizacija podataka i kad se selektuje 5 feature sa TreeBasedSelectorom
+        dobije se 0.544
