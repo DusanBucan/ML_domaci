@@ -1,13 +1,16 @@
 import sys
 import numpy as np
 import pandas as pd
+from sklearn import linear_model
 
-from sklearn.ensemble import BaggingClassifier, AdaBoostClassifier, ExtraTreesClassifier
+from sklearn.ensemble import BaggingClassifier, AdaBoostClassifier, ExtraTreesClassifier, VotingClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SelectFromModel
 from sklearn.metrics import f1_score
 import matplotlib.pyplot as plt
 from sklearn.model_selection import GridSearchCV
+from sklearn.naive_bayes import BernoulliNB, GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC, LinearSVC
 
@@ -57,10 +60,22 @@ def statistic(tr_data):
 
 def crossValidation(X, Y):
 
-    # params = {"n_estimators": [300, 700, 900], "learning_rate": [0.1, 0.2, 0.3]}
-    # grid = GridSearchCV(estimator=AdaBoostClassifier(), param_grid=params, cv=10)
-    # params = {"C": [1, 1.4, 1.6, 2, 2.5]}
-    # grid = GridSearchCV(estimator=SVC(), param_grid=params, cv=10)
+    a1 = BernoulliNB()
+    a2 = ExtraTreesClassifier(n_estimators=200)  # spor
+    a3 = linear_model.RidgeClassifier(alpha=0.001)  # bitno
+    a4 = KNeighborsClassifier(n_neighbors=55, weights='distance', algorithm='ball_tree', leaf_size=8)
+    a5 = SVC(C=2)
+    params = {}
+    # svi 0.5348426283821094
+    # bez a2 0.5347874102705688
+    # BernoulliNB 0.5192711209276643
+    # ExtraTreesClassifier ispod 0.5
+    # RidgeClassifier 0.5273881833241303
+    # knn 0.5186637217007178
+
+    grid = GridSearchCV(estimator=VotingClassifier([('a1', a1), ('a3', a3), ('a4', a4), ('a5', a5)]), param_grid=params,
+                        cv=5)
+
     grid = grid.fit(X, Y)
     print(grid.best_estimator_)
     print(grid.best_score_)
@@ -126,7 +141,7 @@ if __name__ == '__main__':
     #izdvajanje obelezja uz pomoc Stabla
     # X_train, selector = featureSelectionTreBased(X_train, Y_train, None)
 
-    # crossValidation(X_train, Y_train)
+    crossValidation(X_train, Y_train)
     #
     # clf = SVC(C=2)
     clf = AdaBoostClassifier(learning_rate=0.1, n_estimators=900)
