@@ -10,3 +10,10 @@ Uklanjanje NaN vrednosti iz trening skupa:
 
 Obican RandomForestClassifier
     - score: 0.5033557046979866 na test_preview.csv
+
+
+21.5.2020
+
+-- vidi se neizbalansiranost klasa
+
+-- ali distribucija klasa je jednaka i na treing i na test
