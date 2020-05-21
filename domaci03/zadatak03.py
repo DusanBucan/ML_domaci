@@ -174,7 +174,7 @@ def statistic(data):
 
 # svaka grupa da ima dobar odnos..
 # podelis dobre na 5, podelis normalne na 5 i onda spajas
-def stratification(clickBaitArticles, notClickBaitArticles, k_fold=5):
+def stratification(clickBaitArticles, notClickBaitArticles, k_fold=10):
     folds = {}
 
     numClickBaitArticlePerFold = int(np.ceil(len(clickBaitArticles) / k_fold))
@@ -212,7 +212,7 @@ def cross_validation(stratified_data):
     # C_values = [1, 1.2, 1.5, 2.5]
     # gamma_values = [0.2, 0.5, 1]  #sto veca vrednost to ce biti manja oblast oko losije radi nego Linearni
 
-    C_values = [2.5]
+    C_values = [12]
     gamma_values = [1]
 
     for C_value in C_values:
@@ -445,7 +445,7 @@ if __name__ == "__main__":
 
     # checkCoef(svm, vectorizer, clic_stopwords)
 
-    svm = LinearSVC(C=2.5)
+    svm = LinearSVC(C=12)
     vectorizer = initTfiDf(train_data)
     train_model(svm, train_data, vectorizer, False)
     f1Score, accuracy = predict(svm, test_data, vectorizer)
