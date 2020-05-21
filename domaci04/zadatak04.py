@@ -41,7 +41,6 @@ if __name__ == '__main__':
 
     # Uklanjanje NaN vrednosti iz trening skupa
     train_data = train_data.dropna()
-    print(len(train_data))
 
     train_data = preprocess_data(train_data)
     test_data = preprocess_data(test_data)
@@ -50,7 +49,21 @@ if __name__ == '__main__':
     del train_data['speed']
     X_train = train_data.to_numpy()
 
-    clf = RandomForestClassifier(n_estimators=10)
+    from sklearn.ensemble import BaggingClassifier
+    # clf = BaggingClassifier(n_estimators=20, max_samples=0.5, max_features=0.5)
+
+    from sklearn.ensemble import GradientBoostingClassifier
+    clf = GradientBoostingClassifier(n_estimators=1300, max_features='auto', learning_rate=0.1)
+
+    # from sklearn.svm import LinearSVC
+    # from sklearn.feature_selection import SelectFromModel
+    # lsvc = LinearSVC(C=2, penalty="l1", dual=False).fit(X_train, Y_train)
+    # model = SelectFromModel(lsvc, prefit=True)
+    # X_train = model.transform(X_train)
+    # print(X_train.shape)
+
+
+    # clf = RandomForestClassifier(n_estimators=10)
     clf = clf.fit(X_train, Y_train)
 
     Y_test = test_data['speed'].to_numpy()
