@@ -34,7 +34,8 @@ OBINCE METODE ---> pisem ih da bi znali od cega ansambl mora biti bolji..
 -- GradientBoosting je na cross validationu dao ovaj score
 0.5621203754831585 za {'learning_rate': 0.2, 'n_estimators': 1500}
 
-inace na test_preview je dostizao i do 0.60 za lr=0.1 i n_estimators=1200-1300
+inace na test_preview je dostizao i do 0.60 za lr=0.1 i n_estimators=1300
+na crossu: 0.5507454445057979 {'learning_rate': 0.1, 'n_estimators': 1300}
 
 
 VotingClassifier -> test_preview 0.5234899328859061
