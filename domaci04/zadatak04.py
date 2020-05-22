@@ -55,12 +55,14 @@ def statistic(tr_data):
 
 def crossValidation(X, Y):
 
-    params = {"n_estimators": [300, 700, 900], "learning_rate": [0.1, 0.2, 0.3]}
-    # grid = GridSearchCV(estimator=AdaBoostClassifier(), param_grid=params, cv=10)
-    # grid = grid.fit(X, Y)
+    params = {"n_estimators": [500, 1000, 1300, 1700], "learning_rate": [0.1, 0.2, 0.3]}
 
-    clf = GradientBoostingClassifier(n_estimators=1300, max_features='auto', learning_rate=0.1)
-    clf.fit(X, Y)
+    clf = GradientBoostingClassifier(n_estimators=1300, max_features='auto')
+
+    grid = GridSearchCV(estimator=clf, param_grid=params, cv=10)
+
+    print("poceo cross val")
+    grid = grid.fit(X, Y)
 
     print(grid.best_estimator_)
     print(grid.best_score_)
