@@ -35,3 +35,10 @@ OBINCE METODE ---> pisem ih da bi znali od cega ansambl mora biti bolji..
 0.5621203754831585 za {'learning_rate': 0.2, 'n_estimators': 1500}
 
 inace na test_preview je dostizao i do 0.60 za lr=0.1 i n_estimators=1200-1300
+
+
+VotingClassifier -> test_preview 0.5234899328859061
+                    cross_validation 0.5347874102705688 podeljen na 5
+
+BaggingClassifier n_e 160 -> test_preview 0.5570469798657718
+                    cross_validation 0.5275538376587521 podeljen na 5

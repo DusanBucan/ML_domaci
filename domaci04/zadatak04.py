@@ -65,12 +65,12 @@ def crossValidation(X, Y):
     # clf = GradientBoostingClassifier(n_estimators=1300, max_features='auto')
     # grid = GridSearchCV(estimator=clf, param_grid=params, cv=10)
 
-    a1 = BernoulliNB()
-    a2 = ExtraTreesClassifier(n_estimators=200)  # spor
-    a3 = linear_model.RidgeClassifier(alpha=0.001)  # bitno
-    a4 = KNeighborsClassifier(n_neighbors=55, weights='distance', algorithm='ball_tree', leaf_size=8)
-    a5 = SVC(C=2)
-    params = {}
+    # a1 = BernoulliNB()
+    # a2 = ExtraTreesClassifier(n_estimators=200)  # spor
+    # a3 = linear_model.RidgeClassifier(alpha=0.001)  # bitno
+    # a4 = KNeighborsClassifier(n_neighbors=55, weights='distance', algorithm='ball_tree', leaf_size=8)
+    # a5 = SVC(C=2)
+    # params = {}
     # svi 0.5348426283821094
     # bez a2 0.5347874102705688
     # BernoulliNB 0.5192711209276643
@@ -78,8 +78,10 @@ def crossValidation(X, Y):
     # RidgeClassifier 0.5273881833241303
     # knn 0.5186637217007178
 
-    grid = GridSearchCV(estimator=VotingClassifier([('a1', a1), ('a3', a3), ('a4', a4), ('a5', a5)]), param_grid=params,
-                        cv=5)
+    # grid = GridSearchCV(estimator=VotingClassifier([('a1', a1), ('a3', a3), ('a4', a4), ('a5', a5)]), param_grid=params,
+    #                     cv=5)
+
+    grid = GridSearchCV(estimator=BaggingClassifier(), param_grid={}, cv=5, scoring='f1_micro')
 
     grid = grid.fit(X, Y)
 
@@ -146,12 +148,24 @@ if __name__ == '__main__':
     # X_train, selector = featureSelectionTreBased(X_train, Y_train, None)
 
     crossValidation(X_train, Y_train)
-    #
+
     # clf = SVC(C=2)
-    clf = AdaBoostClassifier(learning_rate=0.1, n_estimators=900)
+    # clf = AdaBoostClassifier(learning_rate=0.1, n_estimators=900)
     # clf = RandomForestClassifier(n_estimators=10)
-    clf = clf.fit(X_train, Y_train)
+
+    # nb = BernoulliNB()
+    # rg = linear_model.RidgeClassifier()
+    # knn = KNeighborsClassifier(n_neighbors=55, weights='distance', algorithm='ball_tree', leaf_size=8)
+    # svm = SVC(C=2)  # c 2 podeljen na 10, c 3 podeljen sa 5
     #
+    # clf = VotingClassifier([('nb', nb), ('rg', rg), ('knn', knn), ('a5', svm)])
+
+    # clf = BaggingClassifier(n_estimators=160)
+
+    clf = GradientBoostingClassifier(n_estimators=1300)
+
+    clf = clf.fit(X_train, Y_train)
+
     Y_test = test_data['speed'].to_numpy()
     del test_data['speed']
     X_test = test_data.to_numpy()
