@@ -9,6 +9,7 @@ import pandas as pd
 from sklearn.ensemble import BaggingClassifier, AdaBoostClassifier, ExtraTreesClassifier, VotingClassifier, \
     GradientBoostingClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.feature_selection import SelectFromModel
 from sklearn.kernel_approximation import AdditiveChi2Sampler
 from sklearn.metrics import f1_score
@@ -87,6 +88,10 @@ def statistic(tr_data):
 
 def crossValidation(X, Y):
 
+    # Probavanje Gradientboostinga na cross val
+    # params = {"n_estimators": [500, 1000, 1300, 1700], "learning_rate": [0.1, 0.2, 0.3]}
+    # clf = GradientBoostingClassifier(n_estimators=1300, max_features='auto')
+    # grid = GridSearchCV(estimator=clf, param_grid=params, cv=10)
     # a1 = BernoulliNB()
     # a2 = ExtraTreesClassifier(n_estimators=200)  # spor
     # a3 = linear_model.RidgeClassifier(alpha=0.001)  # bitno
@@ -150,6 +155,7 @@ def crossValidation(X, Y):
 
     grid = GridSearchCV(estimator=boostingClassfier, param_grid=params, cv=5, scoring="f1_micro")
     grid.fit(X, Y)
+
     print(grid.best_estimator_)
     print(grid.best_score_)
     print(grid.best_params_)
@@ -284,7 +290,6 @@ if __name__ == '__main__':
 
     # statistic(train_data)
 
-
     Y_train = train_data['speed'].to_numpy()
     del train_data['speed']
     X_train = train_data.to_numpy()
@@ -300,6 +305,7 @@ if __name__ == '__main__':
 
     # crossValidation(X_train, Y_train)
     #
+
     # clf = SVC(C=2)
     # clf = AdaBoostClassifier(learning_rate=0.1, n_estimators=900)
     # clf = RandomForestClassifier(n_estimators=10)
@@ -339,15 +345,22 @@ if __name__ == '__main__':
     #700, 6 se ne uklapa u vreme od 180 sek...
 
 
-    clf = GradientBoostingClassifier(learning_rate=0.1, n_estimators=300,
-                                     random_state=1, max_depth=7, subsample=0.8)
-
-
-
-
-
+    clf = GradientBoostingClassifier(learning_rate=0.1, n_estimators=700,
+                                     random_state=1, max_depth=5, subsample=0.8)
     clf = clf.fit(X_train, Y_train)
     # # #
+    # nb = BernoulliNB()
+    # rg = linear_model.RidgeClassifier()
+    # knn = KNeighborsClassifier(n_neighbors=55, weights='distance', algorithm='ball_tree', leaf_size=8)
+    # svm = SVC(C=2)  # c 2 podeljen na 10, c 3 podeljen sa 5
+    #
+    # clf = VotingClassifier([('nb', nb), ('rg', rg), ('knn', knn), ('a5', svm)])
+
+    # clf = BaggingClassifier(n_estimators=160)
+
+    # clf = GradientBoostingClassifier(n_estimators=1300)
+    # clf = clf.fit(X_train, Y_train)
+
     Y_test = test_data['speed'].to_numpy()
     del test_data['speed']
     X_test = test_data.to_numpy()
