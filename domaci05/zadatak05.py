@@ -55,9 +55,34 @@ def label_encoding(data, name, le=None):
     return le
 
 
+def replace_nan_by_region(data):
+    values = {}
+    index = data['infant'].index[data['infant'].apply(np.isnan)]
+    for i in index:
+        region_name = data['region'][i]
+        if region_name not in values:
+            values_array = data[data['region'] == region_name]['infant'].dropna().to_numpy()
+            # values[region_name] = statistics.mean(values_array)
+            values[region_name] = statistics.median(values_array)
+        data.iloc[i, data.columns.get_loc('infant')] = values[region_name]
+
+
+def replace_nan_all(data):
+    value = None
+    index = data['infant'].index[data['infant'].apply(np.isnan)]
+    for i in index:
+        if value is None:
+            values_array = data['infant'].dropna().to_numpy()
+            # value = statistics.mean(values_array)
+            value = statistics.median(values_array)
+        data.iloc[i, data.columns.get_loc('infant')] = value
+
+
 def data_preprocessing(train, test):
     le = label_encoding(train, 'oil')
     label_encoding(test, 'oil', le)
+    # replace_nan_by_region(train)
+    replace_nan_all(train)
 
 
 def calculate_v_measure_score(Y_test, Y_predict):
@@ -75,13 +100,15 @@ if __name__ == '__main__':
 
     data_preprocessing(train_data, test_data)
 
+    # brisanje redova sa nan vrednostima
     train_data = train_data.dropna()
+    train_data.reset_index(drop=True, inplace=True)
 
     Y_train = train_data['region'].to_numpy()
     del train_data['region']
     X_train = train_data.to_numpy()
 
-    gm = GaussianMixture(n_components=4, max_iter=1000)
+    gm = GaussianMixture(n_components=4, max_iter=10000)
     gm.fit(X_train, Y_train)
 
     Y_test = test_data['region'].to_numpy()
