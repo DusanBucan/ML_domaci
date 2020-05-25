@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import statistics
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 from sklearn.mixture import GaussianMixture
 from sklearn.metrics import v_measure_score
 from sklearn.preprocessing import LabelEncoder
@@ -45,6 +46,14 @@ def statistics_infant(train_data):
     print(mean)
     print(mini)
     print(maksi)
+
+
+    # Analize oil Values
+    oil_values = [val for val in data['oil']]
+    has_oil = len([x for x in oil_values if x == "yes"])
+    print("\n Analize oil values")
+    print("has oil: ", has_oil, " hasn't oil: ", len(oil_values) - has_oil)
+
 
 
 def label_encoding(data, name, le=None):
@@ -89,6 +98,29 @@ def calculate_v_measure_score(Y_test, Y_predict):
     return v_measure_score(Y_test, Y_predict)
 
 
+def show_3D_plot(data):
+    fig = plt.figure()
+    # ax = fig.gca(projection='3d')
+    ax = plt.axes(projection='3d')
+
+
+    x_values = [val for val in data['income']]
+    y_values = [val for val in data['infant']]
+    z_values = [val for val in data['oil']]
+
+    ax.scatter3D(x_values, y_values, z_values, cmap='Greens')
+
+    # da vidimo u 2D da li ima neke strukture (elipsa, kruznica, krst)
+    # posto samo 10% njih ima naftu..
+    # z_zeros = [0 for x in range(0, len(x_values))]
+    # ax.scatter3D(x_values, y_values, z_zeros, cmap='Greens')
+
+    ax.set_xlabel('income')
+    ax.set_ylabel('infant')
+    ax.set_zlabel('oil')
+
+    plt.show()
+
 if __name__ == '__main__':
     train_path = sys.argv[1]
     test_path = sys.argv[2]
@@ -96,9 +128,12 @@ if __name__ == '__main__':
     train_data = pd.read_csv(train_path)
     test_data = pd.read_csv(test_path)
 
-    # statistics_infant(train_data)
+    statistics_infant(train_data)
 
     data_preprocessing(train_data, test_data)
+
+    show_3D_plot(train_data)
+
 
     # brisanje redova sa nan vrednostima
     train_data = train_data.dropna()

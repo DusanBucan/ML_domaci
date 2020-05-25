@@ -10,3 +10,13 @@ Uklanjanje NaN vrednosti iz trening skupa:
         - u jednoj funkciji se gleda po regionu na primer srednja vrednost za aziju i to se dodeljuje
         - u drugoj se gledaju svi regioni, ondosno svi podaci
     4. nacin: koriscenje regresionom metodom, KNN, expectation-maximization
+
+
+ANALIZA PODATAKA:
+
+1. mogli bi biti grafici ovako mora kroz kod da se prolazi da bi se videlo sta brojevi znace :D
+
+
+2. MOZE LAKO Da se VIZUALIZUJE CEO SKUP, ono ima 3 obelezja staje u 3D...
+
+    --> onaj 3D plot treba skontati koja je struktura klastera
