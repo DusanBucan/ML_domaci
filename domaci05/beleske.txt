@@ -18,5 +18,60 @@ ANALIZA PODATAKA:
 
 
 2. MOZE LAKO Da se VIZUALIZUJE CEO SKUP, ono ima 3 obelezja staje u 3D...
-
     --> onaj 3D plot treba skontati koja je struktura klastera
+
+
+------------------------------------------------------------------------------------------------
+
+
+-- plan:
+
+	da se napravi CROSS VALIDACIJA da bi nad njom sve ovo isprobali
+
+	1. da ih klasifikujes na osnovu primanja, ideja da vidis da li mogu da se podele lepo na Afrika+Azija vs Eu+USA
+	2. da vidis sta moze da se izvuce iz smrtnosti
+	3. na kraju kako moze da pomogne ulje..
+
+
+
+sta mozes sa GMM modelom
+
+	--> inicializacija krece sa kmeans, moze i random, mozemo probati oba, na unakrsnoj validaciji pa neka grid kaze sta je
+			je bolje.
+	--> n_components, prvo na ona 2
+	--> tip kovarijanse, PRECISION je INVERZNO OD OVOGA i to moze da se dodeli rucno, sta znaci..
+
+		full --> trodimenzionalno
+				0 dim = broj_klastera
+				1 dim = broj feature-a
+				2 dim = broj feature-a
+			===> svaki KLASTER IMA SVOJU MATRICU, sto bi ovo RADILI???
+
+		tied --> ovo ne znam sta je gleda se samo po FEATURE-ima, kontam da samo njihove MEDJUSOBNE KOVARIJANSE
+			--> da li je ova FULL kao u VIDEU kod nje
+
+			==> svi KLASTERI DELE MATRICU, ovo je u videima za kovarijansu
+
+		diag --> ovde je MATRICA (broj klastera, broj feature-)
+			svaki klaster ima svoju GLAVNU DIAGONALU,
+
+
+		spherical ---> kontam da je OVO POJEDNOSTavljeno SAMO DA GLEDA GLAVNU DIAGONAULU
+
+			svaka KOMPONENTA ima SAMO SVOJU VARIJANSU, pojednostavljen primer, NEMA POTREBE imamo
+
+	--> BROJ iteracija inicializacije, koliko puta da se izvrti K-Means ili random
+		da se inicializuju TEZINE, MEANS(ono srednje vrednosti) i preciznosti(ovo ne znam sta je)
+
+		-- TEZINE MOGU I RUCNO da se PROSLEDE, ne znam da li je pametno
+		-- SREDNJE VREDNOSTI MOGU DA SE PROSLEDE I RUCNO, nzm kako cemo to.. milica je ovo vec uradila u statistici..
+		--
+
+	--> WARM_START, ako je true da kad pozoves ponovo fit zapamti ono staro pa da dofituje...
+		==> mozda ce da bude resenje za problem ako zavrsi u lokalnom optimumu??
+
+
+
+	--> regularizacija na glavnu dijagonalu
+		ono da ne budu 0, Ovo DIRATI TEK KAD SVE OSTALO namestimo
+-----------------------------------------------------------------------------------------------------s
