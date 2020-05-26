@@ -56,7 +56,6 @@ def statistics_infant(train_data):
     print("has oil: ", has_oil, " hasn't oil: ", len(oil_values) - has_oil)
 
 
-
 def label_encoding(data, name, le=None):
     if le is None:
         le = LabelEncoder()
@@ -91,8 +90,8 @@ def replace_nan_all(data):
 def data_preprocessing(train, test):
     le = label_encoding(train, 'oil')
     label_encoding(test, 'oil', le)
-    # replace_nan_by_region(train)
-    replace_nan_all(train)
+    replace_nan_by_region(train)
+    # replace_nan_all(train)
 
 
 def calculate_v_measure_score(Y_test, Y_predict):
@@ -118,11 +117,19 @@ def show_3D_plot(data):
     fig = plt.figure()
     # ax = fig.gca(projection='3d')
     ax = plt.axes(projection='3d')
-    for i in set(data['region']):
-        x_values = data[data['region'] == i]['income'].dropna().to_numpy()
-        y_values = data[data['region'] == i]['infant'].dropna().to_numpy()
-        z_values = data[data['region'] == i]['oil'].dropna().to_numpy()
-        ax.scatter3D(x_values, y_values, z_values, cmap='Greens', label=i)
+
+    # for i in set(data['region']):
+    #     x_values = data[data['region'] == i]['income'].dropna().to_numpy()
+    #     y_values = data[data['region'] == i]['infant'].dropna().to_numpy()
+    #     z_values = data[data['region'] == i]['oil'].dropna().to_numpy()
+    #     ax.scatter3D(x_values, y_values, z_values, cmap='Greens', label=i)
+
+    regions = [['Americas', 'Africa'], ['Asia', 'Europe']]
+    for i in regions:
+        x_values = pd.concat([data[data['region'] == i[0]]['income'].dropna(), data[data['region'] == i[1]]['income'].dropna()]).to_numpy()
+        y_values = pd.concat([data[data['region'] == i[0]]['infant'].dropna(), data[data['region'] == i[1]]['infant'].dropna()]).to_numpy()
+        z_values = pd.concat([data[data['region'] == i[0]]['oil'].dropna(), data[data['region'] == i[1]]['oil'].dropna()]).to_numpy()
+        ax.scatter(x_values, y_values, z_values, cmap='Greens', label=i)
     # ax.legend([scatter1_proxy, scatter2_proxy], ['label1', 'label2'], numpoints=1)
     # da vidimo u 2D da li ima neke strukture (elipsa, kruznica, krst)
     # posto samo 10% njih ima naftu..
@@ -140,20 +147,54 @@ def show_3D_plot(data):
 def cross_validation(X, Y):
     params = {
         "n_components": [4],
-        "max_iter": [1000, 10000, 20000, 30000],
+        "max_iter": [10000],
         "covariance_type": ['diag', 'full', 'tied', 'spherical'],
-        "n_init": [3, 4, 5, 7, 10, 12, 15, 20, 30],
-        "init_params": ['kmeans', 'random']
+        "init_params": ['kmeans']
     }
 
     gm = GaussianMixture()
 
-    grid = GridSearchCV(estimator=gm, param_grid=params, cv=5, scoring="v_measure_score")
+    grid = GridSearchCV(estimator=gm, param_grid=params, cv=10, scoring="v_measure_score")
     grid.fit(X, Y)
 
     print(grid.best_estimator_)
     print(grid.best_score_)
     print(grid.best_params_)
+
+
+def gaussian_mixture(train_data, group1=['Africa', 'Americas'], group2=['Europe', 'Asia']):
+    Y_train_group1 = pd.concat([train_data[train_data['region'] == group1[0]]['region'],
+                                train_data[train_data['region'] == group1[1]]['region']]).to_numpy()
+    Y_train_group2 = pd.concat([train_data[train_data['region'] == group2[0]]['region'],
+                                train_data[train_data['region'] == group2[1]]['region']]).to_numpy()
+    Y_train_all = np.array([1]*len(Y_train_group1) + [2]*len(Y_train_group2))
+
+    X_train_group1 = pd.concat([train_data[train_data['region'] == group1[0]],
+                                train_data[train_data['region'] == group1[1]]])
+    X_train_group2 = pd.concat([train_data[train_data['region'] == group2[0]],
+                                train_data[train_data['region'] == group2[1]]])
+
+    del X_train_group1['region']
+    del X_train_group2['region']
+
+    X_train_group1 = X_train_group2.to_numpy()
+    X_train_group2 = X_train_group2.to_numpy()
+    X_train_all = np.concatenate((X_train_group1, X_train_group2))
+
+    gm_group1 = GaussianMixture(n_components=2, max_iter=20000)
+    gm_group2 = GaussianMixture(n_components=2, max_iter=20000)
+    gm_all = GaussianMixture(n_components=2, max_iter=100000, covariance_type='diag', n_init=10, init_params='random')
+    gm_group1.fit(X_train_group1, Y_train_group1)
+    gm_group2.fit(X_train_group2, Y_train_group2)
+    gm_all.fit(X_train_all, Y_train_all)
+
+    return gm_group1, gm_group2, gm_all
+
+
+def predict_gm(gm_group1, gm_group2, gm_all, X_test):
+    Y_predict_all = gm_all.predict(X_test)
+    print(Y_predict_all)
+    return 'cao'
 
 
 if __name__ == '__main__':
@@ -163,32 +204,44 @@ if __name__ == '__main__':
     train_data = pd.read_csv(train_path)
     test_data = pd.read_csv(test_path)
 
-    statistics_infant(train_data)
+    # statistics_infant(train_data)
 
     data_preprocessing(train_data, test_data)
 
     # brisanje redova sa nan vrednostima
-    train_data = train_data.dropna()
-    train_data.reset_index(drop=True, inplace=True)
+    # train_data = train_data.dropna()
+    # train_data.reset_index(drop=True, inplace=True)
 
-    #show_3D_plot(train_data)
+    # show_3D_plot(train_data)
 
-    Y_train = train_data['region'].to_numpy()
-    del train_data['region']
-    X_train = train_data.to_numpy()
+    # podeli se u dve grupe, jedan klasifikator da prepozna kojoj grupi pripada, druga dva da prepozna kom regionu
+    # unutar grupe pripada
+    # radi lose, ne prepozna dobro kojoj grupi pripada, ako hocete probajte 
+    # gm_group1, gm_group2, gm_all = gaussian_mixture(train_data)
+    #
+    # Y_test = test_data['region'].to_numpy()
+    # del test_data['region']
+    # X_test = test_data.to_numpy()
+    #
+    # Y_predict = predict_gm(gm_group1, gm_group2, gm_all, X_test)
 
-    X_train, scaler = minMaxScaler(X_train, None)
 
-    cross_validation(X_train, Y_train)
+    # Y_train = train_data['region'].to_numpy()
+    # del train_data['region']
+    # X_train = train_data.to_numpy()
 
-    # gm = GaussianMixture(n_components=4, max_iter=10000, covariance_type="tied")
+    # X_train, scaler = minMaxScaler(X_train, None)
+
+    # cross_validation(X_train, Y_train)
+
+    # gm = GaussianMixture(n_components=4, max_iter=10000)
     # gm.fit(X_train, Y_train)
-
+    #
     # Y_test = test_data['region'].to_numpy()
     # del test_data['region']
     # X_test = test_data.to_numpy()
     # X_test, scaler = minMaxScaler(X_test, scaler)
-
+    #
     # Y_predict = gm.predict(X_test)
     # score = calculate_v_measure_score(Y_test, Y_predict)
     # print(score)
