@@ -117,14 +117,12 @@ def show_3D_plot(data):
     fig = plt.figure()
     # ax = fig.gca(projection='3d')
     ax = plt.axes(projection='3d')
-
-
-    x_values = [val[0] for val in data]
-    y_values = [val[1] for val in data]
-    z_values = [val[2] for val in data]
-
-    ax.scatter3D(x_values, y_values, z_values, cmap='Greens')
-
+    for i in set(data['region']):
+        x_values = data[data['region'] == i]['income'].dropna().to_numpy()
+        y_values = data[data['region'] == i]['infant'].dropna().to_numpy()
+        z_values = data[data['region'] == i]['oil'].dropna().to_numpy()
+        ax.scatter3D(x_values, y_values, z_values, cmap='Greens', label=i)
+    # ax.legend([scatter1_proxy, scatter2_proxy], ['label1', 'label2'], numpoints=1)
     # da vidimo u 2D da li ima neke strukture (elipsa, kruznica, krst)
     # posto samo 10% njih ima naftu..
     # z_zeros = [0 for x in range(0, len(x_values))]
@@ -133,8 +131,10 @@ def show_3D_plot(data):
     ax.set_xlabel('income')
     ax.set_ylabel('infant')
     ax.set_zlabel('oil')
+    ax.legend()
 
     plt.show()
+
 
 if __name__ == '__main__':
     train_path = sys.argv[1]
@@ -147,17 +147,17 @@ if __name__ == '__main__':
 
     data_preprocessing(train_data, test_data)
 
-
     # brisanje redova sa nan vrednostima
     train_data = train_data.dropna()
     train_data.reset_index(drop=True, inplace=True)
+
+    show_3D_plot(train_data)
 
     Y_train = train_data['region'].to_numpy()
     del train_data['region']
     X_train = train_data.to_numpy()
 
     X_train, scaler = minMaxScaler(X_train, None)
-    show_3D_plot(X_train)
 
     gm = GaussianMixture(n_components=4, max_iter=10000)
     gm.fit(X_train, Y_train)
