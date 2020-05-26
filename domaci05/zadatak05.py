@@ -159,7 +159,7 @@ if __name__ == '__main__':
 
     X_train, scaler = minMaxScaler(X_train, None)
 
-    gm = GaussianMixture(n_components=4, max_iter=10000)
+    gm = GaussianMixture(n_components=4, max_iter=10000, covariance_type="tied")
     gm.fit(X_train, Y_train)
 
     Y_test = test_data['region'].to_numpy()
