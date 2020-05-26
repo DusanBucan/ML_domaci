@@ -216,7 +216,7 @@ if __name__ == '__main__':
 
     # podeli se u dve grupe, jedan klasifikator da prepozna kojoj grupi pripada, druga dva da prepozna kom regionu
     # unutar grupe pripada
-    # radi lose, ne prepozna dobro kojoj grupi pripada, ako hocete probajte 
+    # radi lose, ne prepozna dobro kojoj grupi pripada, ako hocete probajte
     # gm_group1, gm_group2, gm_all = gaussian_mixture(train_data)
     #
     # Y_test = test_data['region'].to_numpy()
@@ -226,23 +226,27 @@ if __name__ == '__main__':
     # Y_predict = predict_gm(gm_group1, gm_group2, gm_all, X_test)
 
 
-    # Y_train = train_data['region'].to_numpy()
-    # del train_data['region']
-    # X_train = train_data.to_numpy()
+    Y_train = train_data['region'].to_numpy()
+    del train_data['region']
+    X_train = train_data.to_numpy()
 
     # X_train, scaler = minMaxScaler(X_train, None)
 
     # cross_validation(X_train, Y_train)
 
-    # gm = GaussianMixture(n_components=4, max_iter=10000)
-    # gm.fit(X_train, Y_train)
-    #
-    # Y_test = test_data['region'].to_numpy()
-    # del test_data['region']
-    # X_test = test_data.to_numpy()
+    weights = [0.298, 0.265, 0.194, 0.243]
+    gm = GaussianMixture(n_components=4, covariance_type='diag', max_iter=100000, n_init=100, weights_init=weights)
+    gm.fit(X_train, Y_train)
+    # ne znam da li ovo sve ovako
+    gm.weights_ = weights
+    print(gm.weights_)
+
+    Y_test = test_data['region'].to_numpy()
+    del test_data['region']
+    X_test = test_data.to_numpy()
     # X_test, scaler = minMaxScaler(X_test, scaler)
-    #
-    # Y_predict = gm.predict(X_test)
-    # score = calculate_v_measure_score(Y_test, Y_predict)
-    # print(score)
+
+    Y_predict = gm.predict(X_test)
+    score = calculate_v_measure_score(Y_test, Y_predict)
+    print(score)
 

@@ -75,3 +75,9 @@ sta mozes sa GMM modelom
 	--> regularizacija na glavnu dijagonalu
 		ono da ne budu 0, Ovo DIRATI TEK KAD SVE OSTALO namestimo
 -----------------------------------------------------------------------------------------------------s
+
+stvaran broj drzava
+44 e 0.243
+54 africa 0.298
+48 asia 0.265
+35 americas 0.194
