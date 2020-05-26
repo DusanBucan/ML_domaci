@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.mixture import GaussianMixture
 from sklearn.metrics import v_measure_score
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 
 
 def statistics_infant(train_data):
@@ -101,7 +101,14 @@ def standardScaler(data, scaler):
     if scaler == None:
         scaler = StandardScaler()
         scaler.fit(data)
+    scaled_data = scaler.transform(data)
+    data = [[scaled_data[index][0], scaled_data[index][1], data[index][2]] for index, d in enumerate(data)]
+    return data, scaler
 
+def minMaxScaler(data, scaler=None):
+    if scaler == None:
+        scaler = MinMaxScaler()
+        scaler.fit(data)
     scaled_data = scaler.transform(data)
     data = [[scaled_data[index][0], scaled_data[index][1], data[index][2]] for index, d in enumerate(data)]
     return data, scaler
@@ -149,7 +156,7 @@ if __name__ == '__main__':
     del train_data['region']
     X_train = train_data.to_numpy()
 
-    X_train, scaler = standardScaler(X_train, None)
+    X_train, scaler = minMaxScaler(X_train, None)
     show_3D_plot(X_train)
 
     gm = GaussianMixture(n_components=4, max_iter=10000)
@@ -158,7 +165,7 @@ if __name__ == '__main__':
     Y_test = test_data['region'].to_numpy()
     del test_data['region']
     X_test = test_data.to_numpy()
-    X_test, scaler = standardScaler(X_test, scaler)
+    X_test, scaler = minMaxScaler(X_test, scaler)
 
     Y_predict = gm.predict(X_test)
     score = calculate_v_measure_score(Y_test, Y_predict)
