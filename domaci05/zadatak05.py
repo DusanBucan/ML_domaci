@@ -9,6 +9,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from sklearn.mixture import GaussianMixture
 from sklearn.metrics import v_measure_score
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
+from sklearn.model_selection import GridSearchCV
 
 
 def statistics_infant(train_data):
@@ -136,6 +137,23 @@ def show_3D_plot(data):
     plt.show()
 
 
+def cross_validation(X, Y):
+    params = {
+        "n_components": [4],
+        "max_iter": [10000],
+        "covariance_type": ['tied']
+    }
+
+    gm = GaussianMixture()
+
+    grid = GridSearchCV(estimator=gm, param_grid=params, cv=5, scoring="v_measure_score")
+    grid.fit(X, Y)
+
+    print(grid.best_estimator_)
+    print(grid.best_score_)
+    print(grid.best_params_)
+
+
 if __name__ == '__main__':
     train_path = sys.argv[1]
     test_path = sys.argv[2]
@@ -151,7 +169,7 @@ if __name__ == '__main__':
     train_data = train_data.dropna()
     train_data.reset_index(drop=True, inplace=True)
 
-    show_3D_plot(train_data)
+    #show_3D_plot(train_data)
 
     Y_train = train_data['region'].to_numpy()
     del train_data['region']
@@ -159,15 +177,17 @@ if __name__ == '__main__':
 
     X_train, scaler = minMaxScaler(X_train, None)
 
-    gm = GaussianMixture(n_components=4, max_iter=10000, covariance_type="tied")
-    gm.fit(X_train, Y_train)
+    cross_validation(X_train, Y_train)
 
-    Y_test = test_data['region'].to_numpy()
-    del test_data['region']
-    X_test = test_data.to_numpy()
-    X_test, scaler = minMaxScaler(X_test, scaler)
+    # gm = GaussianMixture(n_components=4, max_iter=10000, covariance_type="tied")
+    # gm.fit(X_train, Y_train)
 
-    Y_predict = gm.predict(X_test)
-    score = calculate_v_measure_score(Y_test, Y_predict)
-    print(score)
+    # Y_test = test_data['region'].to_numpy()
+    # del test_data['region']
+    # X_test = test_data.to_numpy()
+    # X_test, scaler = minMaxScaler(X_test, scaler)
+
+    # Y_predict = gm.predict(X_test)
+    # score = calculate_v_measure_score(Y_test, Y_predict)
+    # print(score)
 
