@@ -140,8 +140,10 @@ def show_3D_plot(data):
 def cross_validation(X, Y):
     params = {
         "n_components": [4],
-        "max_iter": [10000],
-        "covariance_type": ['tied']
+        "max_iter": [1000, 10000, 20000, 30000],
+        "covariance_type": ['diag', 'full', 'tied', 'spherical'],
+        "n_init": [3, 4, 5, 7, 10, 12, 15, 20, 30],
+        "init_params": ['kmeans', 'random']
     }
 
     gm = GaussianMixture()
