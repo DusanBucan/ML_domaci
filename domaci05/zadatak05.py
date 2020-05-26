@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.mixture import GaussianMixture
 from sklearn.metrics import v_measure_score
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 
 def statistics_infant(train_data):
@@ -97,6 +97,14 @@ def data_preprocessing(train, test):
 def calculate_v_measure_score(Y_test, Y_predict):
     return v_measure_score(Y_test, Y_predict)
 
+def standardScaler(data, scaler):
+    if scaler == None:
+        scaler = StandardScaler()
+        scaler.fit(data)
+
+    scaled_data = scaler.transform(data)
+    data = [[scaled_data[index][0], scaled_data[index][1], data[index][2]] for index, d in enumerate(data)]
+    return data, scaler
 
 def show_3D_plot(data):
     fig = plt.figure()
@@ -104,9 +112,9 @@ def show_3D_plot(data):
     ax = plt.axes(projection='3d')
 
 
-    x_values = [val for val in data['income']]
-    y_values = [val for val in data['infant']]
-    z_values = [val for val in data['oil']]
+    x_values = [val[0] for val in data]
+    y_values = [val[1] for val in data]
+    z_values = [val[2] for val in data]
 
     ax.scatter3D(x_values, y_values, z_values, cmap='Greens')
 
@@ -132,8 +140,6 @@ if __name__ == '__main__':
 
     data_preprocessing(train_data, test_data)
 
-    show_3D_plot(train_data)
-
 
     # brisanje redova sa nan vrednostima
     train_data = train_data.dropna()
@@ -143,12 +149,16 @@ if __name__ == '__main__':
     del train_data['region']
     X_train = train_data.to_numpy()
 
+    X_train, scaler = standardScaler(X_train, None)
+    show_3D_plot(X_train)
+
     gm = GaussianMixture(n_components=4, max_iter=10000)
     gm.fit(X_train, Y_train)
 
     Y_test = test_data['region'].to_numpy()
     del test_data['region']
     X_test = test_data.to_numpy()
+    X_test, scaler = standardScaler(X_test, scaler)
 
     Y_predict = gm.predict(X_test)
     score = calculate_v_measure_score(Y_test, Y_predict)
