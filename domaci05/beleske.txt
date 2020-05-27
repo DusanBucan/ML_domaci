@@ -19,6 +19,8 @@ ANALIZA PODATAKA:
 
         ---> NEMAJU SVE, NAPISAO SAM KOJE NEMAJU, ali moze da se SVEDE ZA ONE ZA KOJE NEMA..
 
+        ---> BOLJE RADI AKO SE NE SVEDU SVE.
+
 
 DOPUNJAVANJE NaN vrednosti:
 
@@ -62,7 +64,7 @@ NAKON
 
 
 TEZINE:
-    1. mogu da se stave inicijalne ali tako nije realno jer ono ti treba da radis KLASTERIZACIJU
+    1. mogu da se stave inicijalne ali tako NIJE realno jer ono ti treba da radis KLASTERIZACIJU
         NE MOZES DA ZNAS TEZINE UNAPRED, a i fora sto je GMM bolji K-Means je jer ne moras RUCNO.
 
 
@@ -82,7 +84,6 @@ NORMALIZACIJA
     ----> kontam da onda NI NE MOZEM DA DAJEMO TEZINE RUCNO niti nista od onih init PARAMETARA...
 
     [0.86909793 0.13090207] ---> tezine bez INIT_TEZINA
-
     [0.13085758 0.86914242] ---> slicno ALI SKROZ ObrnUTO NZM STO, to je ona PRICA SAVRSNO DOBAR
             i SAVRSENO LOS KLASIFIKATOR SAMO OBRNES KLASE.... znaci da je okej
 
@@ -167,6 +168,7 @@ sta mozes sa GMM modelom
 
 
 
+----> OVO NIJE DObro
 
 stvaran broj drzava
 44 e 0.243
