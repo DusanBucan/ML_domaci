@@ -100,7 +100,31 @@ NORMALIZACIJA
 
 
 
+# koja obelezja bi mogli da dodamo
 
+    fora ako ne smes da koristis ono kojem pripada
+
+       - izracunas IQR, Q1, Q3 za sve zajedno income
+            dodas obelezje vece od Q1, vece od IQR, vece od Q3
+
+
+       - median za infant
+            pa vece manje od median
+
+       - odnos income/infant
+            EU ce biti veliki brojevi sigurno
+
+
+# hijerarhijski klaster
+
+    jedan da odredi da li je Americas+EU drugi da odredi
+        da li je Asia+Africa
+
+        ==> ovaj da radi sa po 2 obelezja(income+infant)
+            generalno America i EU ce imati kombinaciju
+            manju od ovi
+
+    onda po jos jedan da odredi koji je od ta 2
 
 
 

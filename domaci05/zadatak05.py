@@ -114,7 +114,7 @@ def minMaxScaler(data, scaler=None):
         scaler = MinMaxScaler()
         scaler.fit(data)
     scaled_data = scaler.transform(data)
-    data = [[scaled_data[index][0], scaled_data[index][1], data[index][2]] for index, d in enumerate(data)]
+    data = [[scaled_data[index][0], scaled_data[index][1], data[index][2], data[index][3], data[index][4]] for index, d in enumerate(data)]
     return data, scaler
 
 
@@ -170,45 +170,31 @@ def cross_validation(X, Y):
     print(grid.best_params_)
 
 
-def splitIntoGroups(data, group1=['Africa', 'Americas'], group2=['Europe', 'Asia']):
+def splitIntoGroups(data, groups, featureIndx=0):
 
-    X_group1 = pd.concat([data[data['region'] == group1[0]]])
-                          # data[data['region'] == group1[1]]])
-    X_group2 = pd.concat([data[data['region'] == group2[0]],
-                          data[data['region'] == group2[1]],
-                          data[data['region'] == group2[2]]
-                          ])
-    #
-    # Y_group1 = pd.concat([data[data['region'] == group1[0]]['region'],
-    #                       data[data['region'] == group1[1]]['region']]).to_numpy()
-    #
-    # Y_group2 = pd.concat([data[data['region'] == group2[0]]['region'],
-    #                       data[data['region'] == group2[1]]['region']]).to_numpy()
+    dict = {}
+    for indx, group in enumerate(groups):
+        for region in group:
+            if indx not in dict.keys():
+                dict[indx] = []
+            dict[indx] += [data[data['region'] == region]]
 
-    del X_group1['region']
-    del X_group2['region']
-
-    X_group1 = X_group1.to_numpy()
-    Y_group1 = [0 for i in range(len(X_group1))]
-    X_group2 = X_group2.to_numpy()
-    Y_group2 = [1 for i in range(len(X_group2))]
-    #samo po income da li ih je moguce razdvojiti kako treba
-    # moze i plt da se vidi razlicitim bojama da li ih lepo razdvoji po ovom obelezju
-    X_group1 = [x1[1] for x1 in X_group1]
-    X_group2 = [x2[1] for x2 in X_group2]
-
-    X_all = X_group1 + X_group2
-    Y_all = Y_group1 + Y_group2
+    Y_all = []
+    X_all = []
+    for key in dict.keys():
+        for region_data in dict[key]:
+            del region_data['region']
+            region_data = region_data.to_numpy()
+            X_all += [x1[featureIndx] for x1 in region_data]
+            Y_all += [key for i in range(len(region_data))]
 
     X_all = np.asarray(X_all)
-    Y_all = np.asarray(Y_all)
-
     X_all = X_all.reshape(-1, 1)
     # Y_all = Y_all.reshape(-1, 1)
     return X_all, Y_all
 
 
-def gaussian_mixture(X_all_by_groups, Y_all_by_groups):
+def gaussian_mixture(X_all_by_groups, Y_all_by_groups, n_comp):
     # gm_group1 = GaussianMixture(n_components=2, max_iter=20000)
     # gm_group2 = GaussianMixture(n_components=2, max_iter=20000)
 
@@ -220,7 +206,7 @@ def gaussian_mixture(X_all_by_groups, Y_all_by_groups):
     weights = [cntG1/cntTotal, cntG2/cntTotal]
 
 
-    gm_all = GaussianMixture(n_components=2, max_iter=100000,
+    gm_all = GaussianMixture(n_components=n_comp, max_iter=100000,
                              covariance_type='tied', n_init=10)
                              # ,weights_init=weights)
     # gm_group1.fit(X_train_group1, Y_train_group1)
@@ -250,7 +236,10 @@ def makeBoxPlotByContinent(data):
     X_group3_income = [x3[0] for x3 in X_group3]
     X_group4_income = [x4[0] for x4 in X_group4]
 
-    plt.boxplot([X_group1_income, X_group2_income, X_group3_income, X_group4_income])
+    # plt.boxplot([X_group1_income, X_group2_income, X_group3_income, X_group4_income])
+    # plt.show()
+
+    plt.boxplot(X_group1_income + X_group2_income + X_group3_income + X_group4_income)
     plt.show()
 
 
@@ -394,15 +383,15 @@ if __name__ == '__main__':
     data_preprocessing(train_data, test_data)
     # statistics_infant(train_data)
     # show_3D_plot(train_data)
-    # makeBoxPlotByContinent(train_data)
-    removeOutLiersByIQRs(train_data)
+    makeBoxPlotByContinent(train_data)
+    # removeOutLiersByIQRs(train_data)
     # makeBoxPlotByContinent(train_data)
     # statistics_infant(train_data)
 
 
 
     # KONTAM DA OVDE IMA MEST ZA NAPREDAK modela pre bilo cega drugog.
-    doStatisticTestForFeatureForContinet(train_data, "Americas", "income")
+    # doStatisticTestForFeatureForContinet(train_data, "Americas", "income")
     # Africa, infant ----> IMA NORMANU RASPODELU
     # Africa, income ----> NEMA
     # EU, infant     ----> NEMA
@@ -411,6 +400,8 @@ if __name__ == '__main__':
     # Asia, income   ----> NEMA
     # America, infant ---> IMA
     # America, income ---> IMA
+
+    # na 2 grupe Eu i ostali po plati
 
     # DOBIJU SE LOSIJI REZULTATI, ali moze sve da ih namapira na NORMALNU...
     # mada realno NE ZNAS TI KOJEM KLASTERU KOJE PRIPADA PA DA RADIS ovo, da znas stace ti onda klasterizacija..
@@ -423,44 +414,74 @@ if __name__ == '__main__':
     # mapFeatureToNormalDistByQuantile(train_data, all_combinations)
 
     # #
-    # X_all_train, Y_all_train = splitIntoGroups(train_data, group1=["Africa"], group2=["Europe", "Asia", "Americas"])
-    # #
-    # #
-    # #
-    # gm = gaussian_mixture(X_all_train, Y_all_train)
-    # Y_predict_train = gm.predict(X_all_train)
-    # score = calculate_v_measure_score(Y_all_train, Y_predict_train)
-    # print("train score only by income", score)
-    # #
-    # # misClusteredByIncome = len([1 for indx, x_v in enumerate(Y_predict_train) if Y_all_train[indx] != x_v])
-    # # print("misClustered by income on train dataSet cnt: ", misClusteredByIncome)
-    # # #
-    # X_test, Y_test = splitIntoGroups(test_data, group1=["Africa"], group2=["Europe", "Asia", "Americas"])
-    # Y_predict_test = gm.predict(X_test)
-    # score = calculate_v_measure_score(Y_test, Y_predict_test)
-    # print("test score only by income", score)
+    X_all_train, Y_all_train = splitIntoGroups(train_data,
+            [["Europe"], ["Americas"], ["Africa", "Asia"]], featureIndx=0)
+    gm_income = gaussian_mixture(X_all_train, Y_all_train, 3)
+    Y_predict_train_income = gm_income.predict(X_all_train)
+
+
+    X_all_train, Y_all_train = splitIntoGroups(train_data, [["Europe", "Americas", "Asia"], ["Africa"]],
+                                               featureIndx=1)
+    gm_infant = gaussian_mixture(X_all_train, Y_all_train,2)
+    Y_predict_train_infant = gm_infant.predict(X_all_train)
+
+
+    # ====> dodaj ka feautere na podatke pa pustis glavni klaster...
+    # ako na prvom dobije 0 i na drugom 0 --> eu
+    # ako na prvom dobije 1 i na drugim 0 --> am
+    # ako na prvom dbije 2 i na drugom  0 ---> asia
+    # ako na prvom dobije 2 in na drugom 1 --> africa
+
+    # BAS SE LOSE DOBIJE, dali su grupe lose ili nzm..
 
 
 
-    # Y_train = train_data['region'].to_numpy()
-    # del train_data['region']
-    # X_train = train_data.to_numpy()
-    # #
-    # X_train, scaler = minMaxScaler(X_train, None)
+    Y_train = train_data['region'].to_numpy()
+
+    for indx, y in enumerate(Y_train):
+        if y == "Africa":
+            Y_train[indx] = 0
+        elif y == "Americas":
+            Y_train[indx] = 1
+        elif y == "Asia":
+            Y_train[indx] = 2
+        else:
+            Y_train[indx] = 3
+
+    del train_data['region']
+    X_train = train_data.to_numpy()
+    X_new_train = []
+
+    for indx,f_income in enumerate(Y_predict_train_income):
+        a = np.concatenate((X_train[indx], [f_income, Y_predict_train_infant[indx]]))
+        X_new_train.append(a)
+
+    X_new_train, scaler = minMaxScaler(X_new_train, None)
     #
     # cross_validation(X_train, Y_train)
     # #
-    # gm = GaussianMixture(n_components=4, covariance_type='diag', max_iter=100000, n_init=100)
-    # gm.fit(X_train)
-    # Y_predict_train = gm.predict(X_train)
-    # score = calculate_v_measure_score(Y_train, Y_predict_train)
-    # print("trainScore: ", score)
-    #
-    # Y_test = test_data['region'].to_numpy()
-    # del test_data['region']
-    # X_test = test_data.to_numpy()
-    # X_test, scaler = minMaxScaler(X_test, scaler)
+    gm = GaussianMixture(n_components=4, covariance_type='diag', max_iter=100000, n_init=100)
+    gm.fit(X_new_train)
+    Y_predict_train = gm.predict(X_new_train)
+    score = calculate_v_measure_score(Y_train, Y_predict_train)
+    print("trainScore: ", score)
+
+    # ON TEST DATA
+    Y_test = test_data['region'].to_numpy()
+    del test_data['region']
+    X_test = test_data.to_numpy()
+    X_new_test = []
+
+
+    for indx, x in enumerate(X_test):
+        income_cluster = gm_income.predict(np.asarray(x[0]).reshape(1,-1))
+        infant_cluster = gm_infant.predict(np.asarray(x[1]).reshape(1,-1))
+        a = np.concatenate((X_test[indx], income_cluster,infant_cluster))
+        X_new_test.append(a)
+
+
+    X_new_test, scaler = minMaxScaler(X_new_test, scaler)
     # #
-    # Y_predict = gm.predict(X_test)
-    # score = calculate_v_measure_score(Y_test, Y_predict)
-    # print("testScore: ", score)
+    Y_predict = gm.predict(X_new_test)
+    score = calculate_v_measure_score(Y_test, Y_predict)
+    print("testScore: ", score)
