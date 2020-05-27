@@ -14,11 +14,93 @@ Uklanjanje NaN vrednosti iz trening skupa:
 
 ANALIZA PODATAKA:
 
-1. mogli bi biti grafici ovako mora kroz kod da se prolazi da bi se videlo sta brojevi znace :D
+    -- GMM radi tako sto pripadnost gleda Nekoj od GAUSIJANA, da li nasa OBELEZJA ZA ODREDJENE
+        KLASE IMAJU UOPSTE NORMALNU RASPODELU??
+
+        ---> NEMAJU SVE, NAPISAO SAM KOJE NEMAJU, ali moze da se SVEDE ZA ONE ZA KOJE NEMA..
 
 
-2. MOZE LAKO Da se VIZUALIZUJE CEO SKUP, ono ima 3 obelezja staje u 3D...
-    --> onaj 3D plot treba skontati koja je struktura klastera
+DOPUNJAVANJE NaN vrednosti:
+
+
+
+
+RAD SA OUTLIER-ima:
+
+-- vrednosti koje su skinute sem sto se mogu uociti kao outLieri na boxPlotu imaju i logicku gresku
+    --- 3010,300,Africa,yes
+    --- 1530,650,Asia,yes
+
+    NEMA SMISLA DA KAKO RASTE PLATA TREBALO BI DA OPADA SMRTNOST... msm taj trend se uocava u podazima za EU i Ameriku
+        kod kod Afrike to nije SLUCAJ, smrtnost je VISOKA NEZAVISNO OD PLATA
+
+---> skine se 9 opservacija sto je oko nekih 12% i nije mnogo ali mogu i da se poprave OSTALO BI NAM VISE podataka
+    za trening
+
+===> ako se poskidaju SVIH 9 ONDA NAFTA NEMA NIKAKVO ZNACENJE SVUDA JE No
+
+
+-- BROJEVI:
+24 Asia
+26 Africa
+15 Europe
+19 Americas
+----
+84 total
+
+NAKON
+20 Asia
+23 Africa
+15 Europe
+17 Americas
+-----
+75 total
+
+
+
+===> rezultati
+
+
+TEZINE:
+    1. mogu da se stave inicijalne ali tako nije realno jer ono ti treba da radis KLASTERIZACIJU
+        NE MOZES DA ZNAS TEZINE UNAPRED, a i fora sto je GMM bolji K-Means je jer ne moras RUCNO.
+
+
+NORMALIZACIJA
+    1. daje bolje sa MinMax nego kad NEMA normalizaciju
+
+    2. trebala bi da se koristin Z-Score jer jebeno obeoelzja treba da imaju normalnu raspodelu..
+
+        0.48919151456624155 -- StandardScaler ---> Z-Score
+        0.48919151456624166 -- MinMaxScaler
+
+
+
+#KADA SE TRENIRA NE TREBA DA SE PROSLEDE Y jer u implementaciji fit metode y=None
+    i nigde se ne KORISTI U BIBlIOTECI
+
+    ----> kontam da onda NI NE MOZEM DA DAJEMO TEZINE RUCNO niti nista od onih init PARAMETARA...
+
+    [0.86909793 0.13090207] ---> tezine bez INIT_TEZINA
+
+    [0.13085758 0.86914242] ---> slicno ALI SKROZ ObrnUTO NZM STO, to je ona PRICA SAVRSNO DOBAR
+            i SAVRSENO LOS KLASIFIKATOR SAMO OBRNES KLASE.... znaci da je okej
+
+    ---> zakljucimo da moze da izdvoji po income-u Evropu
+
+
+1. skinuti outlieri i pokusaj da se odvoji evropa od ostalih po plati
+        --> train: 60%, fora od 75 pogresi 5 komada sto znaci da je top..
+        --> test: idealno
+
+2. da odvoji Afriku od ostalih po infant lepo, ali na test nije lepo
+    mada i test je los ono namesteno kod Amerike ogroman broj smrnosti, a kod
+        afrike minilaan tako da nije verodostojan test za ovo..
+
+
+
+
+
 
 
 ------------------------------------------------------------------------------------------------
@@ -75,6 +157,16 @@ sta mozes sa GMM modelom
 	--> regularizacija na glavnu dijagonalu
 		ono da ne budu 0, Ovo DIRATI TEK KAD SVE OSTALO namestimo
 -----------------------------------------------------------------------------------------------------s
+
+
+
+
+
+
+
+
+
+
 
 stvaran broj drzava
 44 e 0.243
