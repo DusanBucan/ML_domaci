@@ -405,7 +405,9 @@ def regression_fill_nan(data):
     # prodji kroz sve elemente i gde je NaN tu pozovi predikciju
     for index, row in data.iterrows():
         if pd.isnull(row['infant']):
-            row['infant'] = reg.predict(np.array([[row['oil'], row['region']]]))[0]
+            train_data.iloc[index, data.columns.get_loc('infant')] = reg.predict(np.array([[row['oil'], row['region']]]))[0]
+            # ovo ne sacuva vrednost ostane nan
+            # row['infant'] = reg.predict(np.array([[row['oil'], row['region']]]))[0]
 
 
 
