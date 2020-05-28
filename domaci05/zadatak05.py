@@ -93,8 +93,8 @@ def replace_nan_all(data):
 def data_preprocessing(train, test):
     le = label_encoding(train, 'oil')
     label_encoding(test, 'oil', le)
-    # regression_fill_nan(train)
-    replace_nan_by_region(train)
+    regression_fill_nan(train)
+    # replace_nan_by_region(train)
     # replace_nan_all(train)
 
 
@@ -399,7 +399,9 @@ def regression_fill_nan(data):
     # prodji kroz sve elemente i gde je NaN tu pozovi predikciju
     for index, row in data.iterrows():
         if pd.isnull(row['infant']):
-            row['infant'] = reg.predict(np.array([[row['oil'], row['region']]]))[0]
+            train_data.iloc[index, data.columns.get_loc('infant')] = reg.predict(np.array([[row['oil'], row['region']]]))[0]
+            # ovo ne sacuva vrednost ostane nan
+            # row['infant'] = reg.predict(np.array([[row['oil'], row['region']]]))[0]
 
 
 if __name__ == '__main__':
@@ -410,6 +412,7 @@ if __name__ == '__main__':
     test_data = pd.read_csv(test_path)
 
     data_preprocessing(train_data, test_data)
+    print(train_data)
     # statistics_infant(train_data)
     # show_3D_plot(train_data)
     # makeBoxPlotByContinent(train_data)
