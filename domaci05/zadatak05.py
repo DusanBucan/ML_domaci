@@ -12,6 +12,7 @@ from sklearn.mixture import GaussianMixture
 from sklearn.metrics import v_measure_score
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.model_selection import GridSearchCV
+from sklearn.linear_model import LinearRegression
 
 
 def statistics_infant(train_data):
@@ -92,6 +93,7 @@ def replace_nan_all(data):
 def data_preprocessing(train, test):
     le = label_encoding(train, 'oil')
     label_encoding(test, 'oil', le)
+    # regression_fill_nan(train)
     replace_nan_by_region(train)
     # replace_nan_all(train)
 
@@ -381,7 +383,23 @@ def mapFeatureToNormalDistByQuantile(data, region_features):
             data.loc[indxDatFrame,feature] = X_trans[indxArray]
 
 
+def regression_fill_nan(data):
+    label_encoding(data, 'region')
+    X = []
+    y = []
 
+    # izdvojiti sve redove koje nemaju NaN
+    for index, row in data.dropna().iterrows():
+        X.append([row['oil'], row['region']])
+        y.append(row['infant'])
+
+    X = np.array([x for x in X])
+    reg = LinearRegression().fit(X, y)
+
+    # prodji kroz sve elemente i gde je NaN tu pozovi predikciju
+    for index, row in data.iterrows():
+        if pd.isnull(row['infant']):
+            row['infant'] = reg.predict(np.array([[row['oil'], row['region']]]))[0]
 
 
 if __name__ == '__main__':
@@ -398,7 +416,6 @@ if __name__ == '__main__':
     removeOutLiersByIQRs(train_data)
     # makeBoxPlotByContinent(train_data)
     # statistics_infant(train_data)
-
 
 
     # KONTAM DA OVDE IMA MEST ZA NAPREDAK modela pre bilo cega drugog.
