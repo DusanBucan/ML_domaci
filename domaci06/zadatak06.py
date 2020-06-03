@@ -64,8 +64,8 @@ def standard_scaler(data, scaler=None):
         scaler = StandardScaler()
         scaler.fit(data)
     scaled_data = scaler.transform(data)
-    data = [[scaled_data[index][0], scaled_data[index][1], data[index][2]] for index, d in enumerate(data)]
-    return data, scaler
+    #data = [[scaled_data[index][0], scaled_data[index][1], data[index][2]] for index, d in enumerate(data)]
+    return scaled_data, scaler #data, scaler
 
 
 def min_max_scaler(data, scaler=None):
@@ -128,13 +128,16 @@ if __name__ == '__main__':
     y_test = test_data['race'].to_numpy()
     del test_data['race']
 
+    train_data, scaler = standard_scaler(train_data)
+    test_data, _ = standard_scaler(test_data, scaler)
+
     # PCA
-    # pca = PCA(n_components=6, svd_solver='full')
-    # pca.fit(train_data)
+    pca = PCA(n_components=5, svd_solver='auto')
+    pca.fit(train_data)
 
     # KernelPCA
-    pca = KernelPCA(n_components=5)
-    pca.fit(train_data)
+    # pca = KernelPCA(n_components=5)
+    # pca.fit(train_data)
 
 
     train_data = pd.DataFrame(data=pca.transform(train_data))
