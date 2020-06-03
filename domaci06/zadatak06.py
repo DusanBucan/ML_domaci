@@ -13,7 +13,8 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import f1_score
 from sklearn.svm import SVC
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA, KernelPCA
+from sklearn.ensemble import GradientBoostingClassifier
 
 
 def label_encoding(data, name, le=None):
@@ -95,6 +96,13 @@ def cross_validation(X, Y):
     print(grid.best_params_)
 
 
+def train_ensemble(X_train, Y_train):
+    # najbolji rezultat koji sam dobio: 0.7741935483870968 na test_preview
+    clf = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=5, subsample=0.8)
+    clf.fit(X_train, Y_train)
+    return clf
+
+
 if __name__ == '__main__':
     train_path = sys.argv[1]
     test_path = sys.argv[2]
@@ -102,8 +110,8 @@ if __name__ == '__main__':
     train_data = pd.read_csv(train_path)
     test_data = pd.read_csv(test_path)
 
-    print(train_data)
-    print(test_data)
+    # print(train_data)
+    # print(test_data)
 
     train_data = train_data.dropna()
 
@@ -112,30 +120,40 @@ if __name__ == '__main__':
         le = label_encoding(train_data, name)
         label_encoding(test_data, name, le)
 
-    print(train_data)
-    print(test_data)
+    # print(train_data)
+    # print(test_data)
 
     y_train = train_data['race'].to_numpy()
     del train_data['race']
     y_test = test_data['race'].to_numpy()
     del test_data['race']
 
-    pca = PCA(n_components=6)
+    # PCA
+    # pca = PCA(n_components=6, svd_solver='full')
+    # pca.fit(train_data)
+
+    # KernelPCA
+    pca = KernelPCA(n_components=5)
     pca.fit(train_data)
+
 
     train_data = pd.DataFrame(data=pca.transform(train_data))
     test_data = pd.DataFrame(data=pca.transform(test_data))
     
-    print(train_data)
-    print(test_data)
+    # print(train_data)
+    # print(test_data)
 
     x_train = train_data.to_numpy()
 
-    svm = SVC()
-    svm.fit(x_train, y_train)
+    # svm = SVC()
+    # svm.fit(x_train, y_train)
+
+    ensemble = train_ensemble(x_train, y_train)
 
     x_test = test_data.to_numpy()
 
-    y_predict = svm.predict(x_test)
+    # y_predict = svm.predict(x_test)
+    y_predict = ensemble.predict(x_test)
+
     score = calculate_f1_score(y_test, y_predict)
     print(score)
