@@ -124,10 +124,7 @@ if __name__ == '__main__':
     # print(train_data)
     # print(test_data)
 
-    replace_nan(train_data)
-    print(len(train_data))
     train_data = train_data.dropna()
-    print(len(train_data))
 
     # col_names = ['race', 'jobclass', 'health', 'health_ins']
     col_names = ['jobclass', 'health', 'health_ins']
