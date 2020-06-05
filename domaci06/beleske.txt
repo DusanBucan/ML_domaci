@@ -13,3 +13,13 @@ Uklanjanje NaN vrednosti iz trening skupa:
 Cross-validation cv=5
 0.8126709206927986
 GradientBoostingClassifier {'learning_rate': 0.01, 'max_depth': 4, 'n_estimators': 700, 'random_state': 1, 'subsample': 0.7}
+
+0.8311195445920304
+{'learning_rate': 0.001, 'max_depth': 1, 'n_estimators': 100, 'random_state': 1, 'subsample': 1}
+
+
+KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='minkowski',
+           metric_params=None, n_jobs=None, n_neighbors=13, p=2,
+           weights='uniform')
+0.8311195445920304
+isto je i za svm
