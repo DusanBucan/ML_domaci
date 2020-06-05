@@ -113,6 +113,25 @@ def train_ensemble(X_train, Y_train):
     return clf
 
 
+def show_boxplot(data, columns):
+    for col in columns:
+        plt.boxplot(data[col].to_numpy())
+        plt.show()
+
+
+def remove_outliers(data, columns):
+    for col in columns:
+        data_col = data[col]
+        q1 = data_col.quantile(0.25)
+        q3 = data_col.quantile(0.75)
+        iqr = q3 - q1
+        filter = (data_col < (q1 - 1.5 * iqr)) | (data_col > (q3 + 1.5 * iqr))
+        outliers = data_col[filter]
+        outliers_drop = outliers.dropna()
+        for idx in outliers_drop.index:
+            data.drop(idx, axis=0, inplace=True)
+
+
 if __name__ == '__main__':
     train_path = sys.argv[1]
     test_path = sys.argv[2]
@@ -124,6 +143,9 @@ if __name__ == '__main__':
     # print(test_data)
 
     train_data = train_data.dropna()
+
+    # show_boxplot(train_data, ['year', 'age', 'wage'])
+    remove_outliers(train_data, ['year', 'age', 'wage'])
 
     # col_names = ['race', 'jobclass', 'health', 'health_ins']
     col_names = ['jobclass', 'health', 'health_ins']
