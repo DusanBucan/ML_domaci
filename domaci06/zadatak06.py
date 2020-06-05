@@ -16,6 +16,7 @@ from sklearn.svm import SVC
 from sklearn.decomposition import PCA, KernelPCA
 from sklearn.ensemble import GradientBoostingClassifier, BaggingClassifier, AdaBoostClassifier
 from scipy.stats import shapiro
+from sklearn.neighbors import KNeighborsClassifier
 
 
 def label_encoding(data, name, le=None):
@@ -70,20 +71,20 @@ def calculate_f1_score(y_true, y_predict):
     return f1_score(y_true, y_predict, average='micro')
 
 
-def standard_scaler(data, scaler=None):
+def standard_scaler(data, col, scaler=None):
     if scaler == None:
         scaler = StandardScaler()
-        scaler.fit(data)
-    scaled_data = scaler.transform(data)
+        scaler.fit(data[[col]])
+    scaled_data = scaler.transform(data[[col]])
     # data = [[scaled_data[index][0], scaled_data[index][1], data[index][2]] for index, d in enumerate(data)]
     return scaled_data, scaler #data, scaler
 
 
-def min_max_scaler(data, scaler=None):
+def min_max_scaler(data, col, scaler=None):
     if scaler == None:
         scaler = MinMaxScaler()
-        scaler.fit(data)
-    scaled_data = scaler.transform(data)
+        scaler.fit(data[[col]])
+    scaled_data = scaler.transform(data[[col]])
     # data = [[scaled_data[index][0], scaled_data[index][1], data[index][2]] for index, d in enumerate(data)]
     return scaled_data, scaler
 
@@ -147,8 +148,8 @@ if __name__ == '__main__':
     # show_boxplot(train_data, ['year', 'age', 'wage'])
     remove_outliers(train_data, ['year', 'age', 'wage'])
 
-    # col_names = ['race', 'jobclass', 'health', 'health_ins']
-    col_names = ['jobclass', 'health', 'health_ins']
+    col_names = ['race', 'jobclass', 'health', 'health_ins']
+    # col_names = ['jobclass', 'health', 'health_ins']
     for name in col_names:
         le = label_encoding(train_data, name)
         label_encoding(test_data, name, le)
@@ -163,11 +164,13 @@ if __name__ == '__main__':
     y_test = test_data['race'].to_numpy()
     del test_data['race']
 
-    train_data, scaler = min_max_scaler(train_data)
-    test_data, _ = min_max_scaler(test_data, scaler)
+    col_names = ['year', 'age', 'wage']
+    for col in col_names:
+        train_data[col], scaler = standard_scaler(train_data, col)
+        test_data[col], _ = standard_scaler(test_data, col, scaler)
 
     # PCA
-    pca = PCA(svd_solver='full', n_components=10, copy=True)
+    pca = PCA(svd_solver='full', n_components=3, copy=True)
     pca.fit(train_data)
     print(pca.explained_variance_ratio_)
 
@@ -183,25 +186,19 @@ if __name__ == '__main__':
 
     x_train = train_data.to_numpy()
 
-    #cross_validation(x_train, y_train)
+    # cross_validation(x_train, y_train)
 
-    # svm = SVC(gamma='scale', C=1)
-    # svm.fit(x_train, y_train)
+    # model = SVC(gamma='scale', C=1)
+    # model = BaggingClassifier(n_estimators=10000)
+    # model = AdaBoostClassifier(n_estimators=100)
+    model = GradientBoostingClassifier(n_estimators=800, learning_rate=0.01, max_depth=4, subsample=0.7, random_state=1)
+    # model = KNeighborsClassifier(n_neighbors=100)
 
-    # bgc = BaggingClassifier(n_estimators=10000)
-    # bgc.fit(x_train, y_train)
-    # ensemble = train_ensemble(x_train, y_train)
-#    ab = AdaBoostClassifier(n_estimators=100)
-#    ab.fit(x_train, y_train)
-
-    ab = GradientBoostingClassifier(n_estimators=700, learning_rate=0.01, max_depth=4, subsample=0.7, random_state=1)
-    ab.fit(x_train, y_train)
+    model.fit(x_train, y_train)
 
     x_test = test_data.to_numpy()
 
-    # y_predict = svm.predict(x_test)
-    y_predict = ab.predict(x_test)
-    # y_predict = ensemble.predict(x_test)
+    y_predict = model.predict(x_test)
 
     score = calculate_f1_score(y_test, y_predict)
     print(score)
