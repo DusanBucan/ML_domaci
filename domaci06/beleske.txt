@@ -8,3 +8,8 @@ Uklanjanje NaN vrednosti iz trening skupa:
         - za kategoricka obelezja koristiti medijan, a za numericka sr.vrednost ili medijan
         - mislim da nije neophodno ovo da radimo da je mozda najbolje resenje da uklonimo kolone
     4. nacin: koriscenje regresionom metodom, KNN, expectation-maximization
+
+
+Cross-validation cv=5
+0.8126709206927986
+GradientBoostingClassifier {'learning_rate': 0.01, 'max_depth': 4, 'n_estimators': 700, 'random_state': 1, 'subsample': 0.7}

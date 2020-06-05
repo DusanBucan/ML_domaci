@@ -90,16 +90,15 @@ def min_max_scaler(data, scaler=None):
 
 def cross_validation(X, Y):
     params = {
-        "n_components": [4],
-        "n_init": [1, 10, 20],
-        "max_iter": [1000,  100000],
-        "covariance_type": ['diag', 'full', 'tied', 'spherical'],
-        "init_params": ['kmeans', "random"]
+        "learning_rate": [0.01, 0.1, 0.2],
+        "n_estimators": [700, 1000, 1500],
+        "random_state": [1],
+        "max_depth": [4, 5],
+        "subsample": [0.8, 0.7]
     }
+    boostingClassfier = GradientBoostingClassifier()
 
-    gm = GaussianMixture()
-
-    grid = GridSearchCV(estimator=gm, param_grid=params, cv=5, scoring="v_measure_score")
+    grid = GridSearchCV(estimator=boostingClassfier, param_grid=params, cv=5, scoring="f1_micro")
     grid.fit(X, Y)
 
     print(grid.best_estimator_)
@@ -162,13 +161,18 @@ if __name__ == '__main__':
 
     x_train = train_data.to_numpy()
 
+    #cross_validation(x_train, y_train)
+
     # svm = SVC(gamma='scale', C=1)
     # svm.fit(x_train, y_train)
 
     # bgc = BaggingClassifier(n_estimators=10000)
     # bgc.fit(x_train, y_train)
     # ensemble = train_ensemble(x_train, y_train)
-    ab = AdaBoostClassifier(n_estimators=100)
+#    ab = AdaBoostClassifier(n_estimators=100)
+#    ab.fit(x_train, y_train)
+
+    ab = GradientBoostingClassifier(n_estimators=700, learning_rate=0.01, max_depth=4, subsample=0.7, random_state=1)
     ab.fit(x_train, y_train)
 
     x_test = test_data.to_numpy()
