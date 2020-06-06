@@ -22,4 +22,8 @@ KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='minkowski',
            metric_params=None, n_jobs=None, n_neighbors=13, p=2,
            weights='uniform')
 0.8311195445920304
+KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='minkowski',
+           metric_params=None, n_jobs=None, n_neighbors=11, p=2,
+           weights='uniform')
+0.8315939278937381
 isto je i za svm

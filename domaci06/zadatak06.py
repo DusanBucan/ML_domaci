@@ -109,9 +109,9 @@ def cross_validation(X, Y):
     }
 
     params = {
-        "n_neighbors": list(range(1, 51)),
-        "weights": ["uniform", "distance"],
-        "algorithm": ['auto', 'ball_tree', 'kd_tree', 'brute']
+        "n_neighbors": list(range(1, 21)),
+        # "weights": ["uniform", "distance"],
+        # "algorithm": ['auto', 'ball_tree', 'kd_tree', 'brute']
     }
 
     boostingClassfier = GradientBoostingClassifier()
@@ -247,56 +247,61 @@ if __name__ == '__main__':
 
     # print(train_data)
     # print(test_data)
-    print(len(train_data))
+
+    # print(len(train_data))
     # replace_nan(train_data)
 
-    del train_data['year']   # msm da nema neki znacaj
-    del test_data['year']
+    # del train_data['year']   # msm da nema neki znacaj
+    # del test_data['year']    # mislim da ne trebamo mi ovo da radimo da pca sam treba da odredi, ako se ne varam
 
     train_data = train_data.dropna()
+    # print(len(train_data))
     train_data.reset_index(drop=True, inplace=True)
+
     # train_data = train_data.dropna(subset=['race'])
     # statistic(train_data)
     # statistic(test_data)
-    print(len(train_data))
 
     # makeBoxPlotByRace(train_data)
     # makeBoxPlotByRace(test_data)
     # show_boxplot(train_data, ['year', 'age', 'wage'])
-    # remove_outliers(train_data, ['year', 'age', 'wage'])
-    #
-    col_names = ['race','education', 'health', 'jobclass']
+
+    remove_outliers(train_data, ['age', 'wage'])
+    train_data.reset_index(drop=True, inplace=True)
+
+    col_names = ['race', 'education', 'health', 'jobclass', 'health_ins']
     # # col_names = ['jobclass', 'health', 'health_ins']
     for name in col_names:
         le = label_encoding(train_data, name)
         label_encoding(test_data, name, le)
 
+    # isto radi kao i kad se gore stavi health_ins, ne znam zasto bi pravili ovako
     #radi samo za health_ins
-    myLabelEncoder(train_data)
-    myLabelEncoder(test_data)
+    # myLabelEncoder(train_data)
+    # myLabelEncoder(test_data)
     #
-    # trebala bi i rasa ovde
+    # trebala bi i rasa ovde, rasu treba da pogodis, nema smisla da je one hot
     col_names = ['maritl']
     for name in col_names:
         train_data, ohe = one_hot_encoding(train_data, name)
         test_data = one_hot_encoding(test_data, name, ohe)
-    #
+
     y_train = train_data['race'].to_numpy()
     del train_data['race']
     y_test = test_data['race'].to_numpy()
     del test_data['race']
 
     # col_names = ['year', 'age', 'wage']
-    col_names = [ 'age', 'wage']
+    col_names = ['age', 'wage']
     for col in col_names:
         train_data[col], scaler = standard_scaler(train_data, col)
         test_data[col], _ = standard_scaler(test_data, col, scaler)
 
     # # PCA
-    pca = PCA(svd_solver='full',n_components=7, copy=True)
+    pca = PCA(svd_solver='full', n_components=7, copy=True)
     pca.fit(train_data)
     # print(pca.explained_variance_ratio_)
-    # print(sum(pca.explained_variance_ratio_[0:7]))
+    print(sum(pca.explained_variance_ratio_[0:5]))
     print(pca.explained_variance_ratio_)
 
     # KernelPCA
@@ -307,46 +312,37 @@ if __name__ == '__main__':
 
     # sa 5 ili 7 dobija isti score na cross, oko 0.80, izvacen je years
 
-
-    #
-    # # KernelPCA
-    # # pca = KernelPCA(n_components=5)
-    # # pca.fit(train_data)
-    #
-    # model = SVC(gamma='scale', C=1)
-    # model = BaggingClassifier(n_estimators=10000)
-    # model = AdaBoostClassifier(n_estimators=100)
-    # model = GradientBoostingClassifier(n_estimators=100, learning_rate=0.01, max_depth=1, subsample=1, random_state=1)
-    model = KNeighborsClassifier(n_neighbors=13)
+    # KernelPCA
+    # pca = KernelPCA(n_components=5)
+    # pca.fit(train_data)
 
     # da se vidi sta PCA bira kako gleda.
     # train_data_pca = pd.DataFrame(data=pca.transform(train_data))
     # test_data_pca = pd.DataFrame(data=pca.transform(test_data))
-    #
+
     # calculate_cov(train_data, train_data_pca)
 
-    train_data = pd.DataFrame(data=pca.transform(train_data))
-    test_data = pd.DataFrame(data=pca.transform(test_data))
+    # train_data = pd.DataFrame(data=pca.transform(train_data))
+    # test_data = pd.DataFrame(data=pca.transform(test_data))
 
+    # print(train_data)
+    # print(test_data)
 
-    # # print(train_data)
-    # # print(test_data)
-    #
     x_train = train_data.to_numpy()
-    #
+
     cross_validation(x_train, y_train)
-    #
-    # # model = SVC(gamma='scale', C=1)
-    # # model = BaggingClassifier(n_estimators=10000)
-    # # model = AdaBoostClassifier(n_estimators=100)
+
+    # model = SVC(gamma='scale', C=1)
+    # model = BaggingClassifier(n_estimators=10000)
+    # model = AdaBoostClassifier(n_estimators=100)
     # model = GradientBoostingClassifier(n_estimators=800, learning_rate=0.01, max_depth=4, subsample=0.7, random_state=1)
-    # # # model = KNeighborsClassifier(n_neighbors=100)
-    # #
-    # model.fit(x_train, y_train)
-    # #
-    # x_test = test_data.to_numpy()
-    # #
-    # y_predict = model.predict(x_test)
-    # #
-    # score = calculate_f1_score(y_test, y_predict)
-    # print(score)
+    # model = GradientBoostingClassifier(n_estimators=100, learning_rate=0.01, max_depth=1, subsample=1, random_state=1)
+    model = KNeighborsClassifier(n_neighbors=13)
+    model.fit(x_train, y_train)
+    #
+    x_test = test_data.to_numpy()
+    #
+    y_predict = model.predict(x_test)
+    #
+    score = calculate_f1_score(y_test, y_predict)
+    print(score)
