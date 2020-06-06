@@ -90,13 +90,20 @@ def min_max_scaler(data, col, scaler=None):
 
 
 def cross_validation(X, Y):
+    # params = {
+    #     "learning_rate": [0.01, 0.1, 0.2],
+    #     "n_estimators": [700, 1000, 1500],
+    #     "random_state": [1],
+    #     "max_depth": [4, 5],
+    #     "subsample": [0.8, 0.7]
+    # }
     params = {
-        "learning_rate": [0.01, 0.1, 0.2],
-        "n_estimators": [700, 1000, 1500],
-        "random_state": [1],
-        "max_depth": [4, 5],
-        "subsample": [0.8, 0.7]
-    }
+            "learning_rate": [0.1],
+            "n_estimators": [700],
+            "random_state": [1],
+            "max_depth": [5],
+            "subsample": [0.7]
+        }
     boostingClassfier = GradientBoostingClassifier()
 
     grid = GridSearchCV(estimator=boostingClassfier, param_grid=params, cv=5, scoring="f1_micro")
@@ -119,6 +126,26 @@ def show_boxplot(data, columns):
         plt.boxplot(data[col].to_numpy())
         plt.show()
 
+def makeBoxPlotByRace(data):
+    X_group1 = pd.concat([data[data['race'] == '1. White']]).to_numpy()
+    X_group2 = pd.concat([data[data['race'] == "2. Black"]]).to_numpy()
+    X_group3 = pd.concat([data[data['race'] == "3. Asian"]]).to_numpy()
+    X_group4 = pd.concat([data[data['race'] == "4. Other"]]).to_numpy()
+
+    #income data by continent
+    X_group1_income = [x1[1] for x1 in X_group1]
+    X_group2_income = [x2[1] for x2 in X_group2]
+    X_group3_income = [x3[1] for x3 in X_group3]
+    X_group4_income = [x4[1] for x4 in X_group4]
+
+    plt.boxplot([X_group1_income, X_group2_income, X_group3_income, X_group4_income])
+    plt.show()
+
+
+    print("cnt White", len(X_group1_income))
+    print("cnt Black", len(X_group2_income))
+    print("cnt Asian", len(X_group3_income))
+    print("cnt Other", len(X_group4_income))
 
 def remove_outliers(data, columns):
     for col in columns:
@@ -133,6 +160,73 @@ def remove_outliers(data, columns):
             data.drop(idx, axis=0, inplace=True)
 
 
+def statistic(data):
+    X_group1 = pd.concat([data[data['race'] == '1. White']]).to_numpy()
+    X_group2 = pd.concat([data[data['race'] == "2. Black"]]).to_numpy()
+    X_group3 = pd.concat([data[data['race'] == "3. Asian"]]).to_numpy()
+    X_group4 = pd.concat([data[data['race'] == "4. Other"]]).to_numpy()
+
+
+    # ovo je za PROCENTE KOLIKO NJIH IMA KOJI STEPEN STUDIJA
+    dict_white = {}
+    dict_black = {}
+    dict_asian = {}
+    dict_other = {}
+
+    for d in X_group1:
+        if d[0] not in dict_white:
+            dict_white[d[0]] = 0
+        dict_white[d[0]] += 1
+
+    print("for White")
+    for key in dict_white.keys():
+        print(key, dict_white[key]/len(X_group1))
+
+
+    for d in X_group2:
+        if d[0] not in dict_black:
+            dict_black[d[0]] = 0
+        dict_black[d[0]] += 1
+
+    print("for Black")
+    for key in dict_black.keys():
+        print(key, dict_black[key]/len(X_group2))
+
+    for d in X_group3:
+        if d[0] not in dict_asian:
+            dict_asian[d[0]] = 0
+        dict_asian[d[0]] += 1
+
+    print("for Asian")
+    for key in dict_asian.keys():
+        print(key, dict_asian[key] / len(X_group3))
+
+
+    for d in X_group4:
+        if d[0] not in dict_other:
+            dict_other[d[0]] = 0
+        dict_other[d[0]] += 1
+
+    print("for Other")
+    for key in dict_other.keys():
+        print(key, dict_other[key] / len(X_group4))
+
+def myLabelEncoder(data):
+    for index, row in data.iterrows():
+        retVal = 0
+        if "Yes" in row['health_ins']:
+            retVal = 1
+        data.iloc[index, data.columns.get_loc('health_ins')] = retVal
+
+# da se izracuna kovarijansa izmedju
+def calculate_cov(data, pca_data):
+    result = pd.concat([data, pca_data], axis=1, sort=False)
+    corr = result.corr()
+    # zaustaviti debagorom pa pogledati vrednosti
+    plt.matshow(corr)
+    plt.show()
+
+
 if __name__ == '__main__':
     train_path = sys.argv[1]
     test_path = sys.argv[2]
@@ -143,62 +237,90 @@ if __name__ == '__main__':
     # print(train_data)
     # print(test_data)
 
+    del train_data['year']   # msm da nema neki znacaj
+    del test_data['year']
+
     train_data = train_data.dropna()
+    train_data.reset_index(drop=True, inplace=True)
+    # train_data = train_data.dropna(subset=['race'])
+    # statistic(train_data)
+    # statistic(test_data)
 
+    # makeBoxPlotByRace(train_data)
+    # makeBoxPlotByRace(test_data)
     # show_boxplot(train_data, ['year', 'age', 'wage'])
-    remove_outliers(train_data, ['year', 'age', 'wage'])
-
-    col_names = ['race', 'jobclass', 'health', 'health_ins']
-    # col_names = ['jobclass', 'health', 'health_ins']
+    # remove_outliers(train_data, ['year', 'age', 'wage'])
+    #
+    col_names = ['race','education', 'health', 'jobclass']
+    # # col_names = ['jobclass', 'health', 'health_ins']
     for name in col_names:
         le = label_encoding(train_data, name)
         label_encoding(test_data, name, le)
 
-    col_names = ['maritl', 'education']
+    #radi samo za health_ins
+    myLabelEncoder(train_data)
+    myLabelEncoder(test_data)
+    #
+    # trebala bi i rasa ovde
+    col_names = ['maritl']
     for name in col_names:
         train_data, ohe = one_hot_encoding(train_data, name)
         test_data = one_hot_encoding(test_data, name, ohe)
-
+    #
     y_train = train_data['race'].to_numpy()
     del train_data['race']
     y_test = test_data['race'].to_numpy()
     del test_data['race']
 
-    col_names = ['year', 'age', 'wage']
+    # col_names = ['year', 'age', 'wage']
+    col_names = [ 'age', 'wage']
     for col in col_names:
         train_data[col], scaler = standard_scaler(train_data, col)
         test_data[col], _ = standard_scaler(test_data, col, scaler)
 
-    # PCA
-    pca = PCA(svd_solver='full', n_components=3, copy=True)
+    # # PCA
+    pca = PCA(svd_solver='full',n_components=5, copy=True)
     pca.fit(train_data)
-    print(pca.explained_variance_ratio_)
+    # print(pca.explained_variance_ratio_)
+    # print(sum(pca.explained_variance_ratio_[0:7]))
 
-    # KernelPCA
-    # pca = KernelPCA(n_components=5)
-    # pca.fit(train_data)
+    # sa 7 osa se zadrzi 97.5% varijanse
+
+
+    #
+    # # KernelPCA
+    # # pca = KernelPCA(n_components=5)
+    # # pca.fit(train_data)
+    #
+
+    # da se vidi sta PCA bira kako gleda.
+    # train_data_pca = pd.DataFrame(data=pca.transform(train_data))
+    # test_data_pca = pd.DataFrame(data=pca.transform(test_data))
+    #
+    # calculate_cov(train_data, train_data_pca)
 
     train_data = pd.DataFrame(data=pca.transform(train_data))
     test_data = pd.DataFrame(data=pca.transform(test_data))
-    
-    # print(train_data)
-    # print(test_data)
 
+
+    # # print(train_data)
+    # # print(test_data)
+    #
     x_train = train_data.to_numpy()
-
-    # cross_validation(x_train, y_train)
-
-    # model = SVC(gamma='scale', C=1)
-    # model = BaggingClassifier(n_estimators=10000)
-    # model = AdaBoostClassifier(n_estimators=100)
-    model = GradientBoostingClassifier(n_estimators=800, learning_rate=0.01, max_depth=4, subsample=0.7, random_state=1)
-    # model = KNeighborsClassifier(n_neighbors=100)
-
-    model.fit(x_train, y_train)
-
-    x_test = test_data.to_numpy()
-
-    y_predict = model.predict(x_test)
-
-    score = calculate_f1_score(y_test, y_predict)
-    print(score)
+    #
+    cross_validation(x_train, y_train)
+    #
+    # # model = SVC(gamma='scale', C=1)
+    # # model = BaggingClassifier(n_estimators=10000)
+    # # model = AdaBoostClassifier(n_estimators=100)
+    # model = GradientBoostingClassifier(n_estimators=800, learning_rate=0.01, max_depth=4, subsample=0.7, random_state=1)
+    # # # model = KNeighborsClassifier(n_neighbors=100)
+    # #
+    # model.fit(x_train, y_train)
+    # #
+    # x_test = test_data.to_numpy()
+    # #
+    # y_predict = model.predict(x_test)
+    # #
+    # score = calculate_f1_score(y_test, y_predict)
+    # print(score)

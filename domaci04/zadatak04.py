@@ -285,7 +285,8 @@ if __name__ == '__main__':
     # Uklanjanje NaN vrednosti iz trening skupa
     train_data = train_data.dropna()
 
-    train_data = preprocess_data(train_data)
+    train_data = preproc
+    ess_data(train_data)
     test_data = preprocess_data(test_data)
 
     # statistic(train_data)

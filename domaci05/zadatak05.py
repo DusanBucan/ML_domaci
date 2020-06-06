@@ -423,7 +423,8 @@ if __name__ == '__main__':
     label_encoding(test_data, "region")
 
     # print(train_data.corr())
-    replace_nan_by_region(train_data)
+
+    # replace_nan_by_region(train_data)
     # statistics_infant(train_data)
     # show_3D_plot(train_data)
     # print(train_data.corr())
@@ -434,7 +435,7 @@ if __name__ == '__main__':
     # print(train_data.corr())
     # makeBoxPlotByContinent(train_data)
 
-
+    train_data = train_data.dropna()
 
     # statistics_infant(train_data)
 
