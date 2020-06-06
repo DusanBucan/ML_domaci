@@ -17,6 +17,7 @@ from sklearn.decomposition import PCA, KernelPCA
 from sklearn.ensemble import GradientBoostingClassifier, BaggingClassifier, AdaBoostClassifier
 from scipy.stats import shapiro
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.cluster import KMeans
 
 
 def label_encoding(data, name, le=None):
@@ -40,11 +41,13 @@ def one_hot_encoding(data, name, lb=None):
 def replace_nan(data):
     idx, idy = np.where(pd.isnull(data))
     result = np.column_stack([data.index[idx], data.columns[idy]])
-    print(result)
     for row, col in result:
         values_array = data[col].dropna().to_numpy()
         # value = statistics.mean(values_array)
-        value = statistics.median(values_array)
+        if col in ['year', 'age', 'wage']:
+            value = statistics.mean(values_array)
+        else:
+            continue
         data.iloc[row, data.columns.get_loc(col)] = value
 
 
@@ -75,7 +78,7 @@ def standard_scaler(data, col, scaler=None):
     if scaler == None:
         scaler = StandardScaler()
         scaler.fit(data[[col]])
-    scaled_data = scaler.transform(data[[col]])
+    scaled_data = scaler.transform(data[[col]].to_numpy(dtype=float))
     # data = [[scaled_data[index][0], scaled_data[index][1], data[index][2]] for index, d in enumerate(data)]
     return scaled_data, scaler #data, scaler
 
@@ -98,20 +101,28 @@ def cross_validation(X, Y):
     #     "subsample": [0.8, 0.7]
     # }
     params = {
-            "learning_rate": [0.1],
-            "n_estimators": [700],
-            "random_state": [1],
-            "max_depth": [5],
-            "subsample": [0.7]
-        }
+        "learning_rate": [0.1],
+        "n_estimators": [700],
+        "random_state": [1],
+        "max_depth": [5],
+        "subsample": [0.7]
+    }
+
+    params = {
+        "n_neighbors": list(range(1, 51)),
+        "weights": ["uniform", "distance"],
+        "algorithm": ['auto', 'ball_tree', 'kd_tree', 'brute']
+    }
+
     boostingClassfier = GradientBoostingClassifier()
 
-    grid = GridSearchCV(estimator=boostingClassfier, param_grid=params, cv=5, scoring="f1_micro")
+    grid = GridSearchCV(estimator=KNeighborsClassifier(), param_grid=params, cv=5, scoring="f1_micro")
     grid.fit(X, Y)
 
     print(grid.best_estimator_)
     print(grid.best_score_)
     print(grid.best_params_)
+
 
 
 def train_ensemble(X_train, Y_train):
@@ -236,6 +247,8 @@ if __name__ == '__main__':
 
     # print(train_data)
     # print(test_data)
+    print(len(train_data))
+    # replace_nan(train_data)
 
     del train_data['year']   # msm da nema neki znacaj
     del test_data['year']
@@ -245,6 +258,7 @@ if __name__ == '__main__':
     # train_data = train_data.dropna(subset=['race'])
     # statistic(train_data)
     # statistic(test_data)
+    print(len(train_data))
 
     # makeBoxPlotByRace(train_data)
     # makeBoxPlotByRace(test_data)
@@ -283,6 +297,11 @@ if __name__ == '__main__':
     pca.fit(train_data)
     # print(pca.explained_variance_ratio_)
     # print(sum(pca.explained_variance_ratio_[0:7]))
+    print(pca.explained_variance_ratio_)
+
+    # KernelPCA
+    # pca = KernelPCA(n_components=3)
+    # pca.fit(train_data)
 
     # sa 7 osa se zadrzi 97.5% varijanse
 
@@ -294,6 +313,11 @@ if __name__ == '__main__':
     # # pca = KernelPCA(n_components=5)
     # # pca.fit(train_data)
     #
+    # model = SVC(gamma='scale', C=1)
+    # model = BaggingClassifier(n_estimators=10000)
+    # model = AdaBoostClassifier(n_estimators=100)
+    # model = GradientBoostingClassifier(n_estimators=100, learning_rate=0.01, max_depth=1, subsample=1, random_state=1)
+    model = KNeighborsClassifier(n_neighbors=13)
 
     # da se vidi sta PCA bira kako gleda.
     # train_data_pca = pd.DataFrame(data=pca.transform(train_data))
