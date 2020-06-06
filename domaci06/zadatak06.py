@@ -129,7 +129,20 @@ def cross_validation(X, Y):
     # }
     # gm = GaussianMixture()
     # grid = GridSearchCV(estimator=gm, param_grid=params, cv=5, scoring="f1_micro")
+    
+    pca = PCA()
+    boostingClassfier = GradientBoostingClassifier()
+    pipe = Pipeline(steps=[('pca', pca), ('boosting', boostingClassfier)])
 
+    param_grid = {
+        'pca__n_components': [3, 4, 5, 6, 7],
+        "boosting__learning_rate": [0.1],
+        "boosting__n_estimators": [100],
+        "boosting__random_state": [1],
+        "boosting__max_depth": [1],
+        "boosting__subsample": [1]
+    }
+    grid = GridSearchCV(pipe, param_grid, cv=5, n_jobs=-1)
 
     grid.fit(X, Y)
 
@@ -311,11 +324,11 @@ if __name__ == '__main__':
         test_data[col], _ = standard_scaler(test_data, col, scaler)
 
     # # PCA
-    pca = PCA(svd_solver='full', n_components=7, copy=True)
+    pca = PCA(svd_solver='full', n_components=5, copy=True)
     pca.fit(train_data)
     # print(pca.explained_variance_ratio_)
-    print(sum(pca.explained_variance_ratio_[0:5]))
-    print(pca.explained_variance_ratio_)
+    # print(sum(pca.explained_variance_ratio_[0:5]))
+    # print(pca.explained_variance_ratio_)
 
     # KernelPCA
     # pca = KernelPCA(n_components=3)
@@ -346,16 +359,17 @@ if __name__ == '__main__':
     #cross_validation(x_train, y_train)
 
     # model = SVC(gamma='scale', C=1)
-    model = BaggingClassifier(n_estimators=10000)
+    # model = BaggingClassifier(n_estimators=10000)
     # model = AdaBoostClassifier(n_estimators=100)
     # model = GradientBoostingClassifier(n_estimators=800, learning_rate=0.01, max_depth=4, subsample=0.7, random_state=1)
-    # model = GradientBoostingClassifier(n_estimators=100, learning_rate=0.01, max_depth=1, subsample=1, random_state=1)
+    model = GradientBoostingClassifier(n_estimators=100, learning_rate=0.01, max_depth=1, subsample=1, random_state=1)
     # model = KNeighborsClassifier(n_neighbors=13)
+    
     model.fit(x_train, y_train)
-    #
+
     x_test = test_data.to_numpy()
-    #
+
     y_predict = model.predict(x_test)
-    #
+
     score = calculate_f1_score(y_test, y_predict)
     print(score)
