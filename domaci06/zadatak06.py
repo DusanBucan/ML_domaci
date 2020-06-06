@@ -18,6 +18,7 @@ from sklearn.ensemble import GradientBoostingClassifier, BaggingClassifier, AdaB
 from scipy.stats import shapiro
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.cluster import KMeans
+from sklearn.pipeline import Pipeline
 
 
 def label_encoding(data, name, le=None):
@@ -100,29 +101,41 @@ def cross_validation(X, Y):
     #     "max_depth": [4, 5],
     #     "subsample": [0.8, 0.7]
     # }
-    params = {
-        "learning_rate": [0.1],
-        "n_estimators": [700],
-        "random_state": [1],
-        "max_depth": [5],
-        "subsample": [0.7]
-    }
+    # params = {
+    #     "learning_rate": [0.1],
+    #     "n_estimators": [700],
+    #     "random_state": [1],
+    #     "max_depth": [5],
+    #     "subsample": [0.7]
+    # }
 
-    params = {
-        "n_neighbors": list(range(1, 21)),
-        # "weights": ["uniform", "distance"],
-        # "algorithm": ['auto', 'ball_tree', 'kd_tree', 'brute']
-    }
+    # params = {
+    #     "n_neighbors": list(range(1, 21)),
+    #     # "weights": ["uniform", "distance"],
+    #     # "algorithm": ['auto', 'ball_tree', 'kd_tree', 'brute']
+    # }
 
-    boostingClassfier = GradientBoostingClassifier()
+    # boostingClassfier = GradientBoostingClassifier()
 
-    grid = GridSearchCV(estimator=KNeighborsClassifier(), param_grid=params, cv=5, scoring="f1_micro")
+    # grid = GridSearchCV(estimator=KNeighborsClassifier(), param_grid=params, cv=5, scoring="f1_micro")
+    
+    # GMM
+    # params = {
+    #     "n_components": [4],
+    #     "n_init": [1, 2, 5, 10, 20],
+    #     "max_iter": [1000, 2000, 5000, 10000],
+    #     "covariance_type": ['diag', 'full', 'tied', 'spherical'],
+    #     "init_params": ['kmeans', "random"],
+    # }
+    # gm = GaussianMixture()
+    # grid = GridSearchCV(estimator=gm, param_grid=params, cv=5, scoring="f1_micro")
+
+
     grid.fit(X, Y)
 
     print(grid.best_estimator_)
     print(grid.best_score_)
     print(grid.best_params_)
-
 
 
 def train_ensemble(X_train, Y_train):
@@ -330,14 +343,14 @@ if __name__ == '__main__':
 
     x_train = train_data.to_numpy()
 
-    cross_validation(x_train, y_train)
+    #cross_validation(x_train, y_train)
 
     # model = SVC(gamma='scale', C=1)
-    # model = BaggingClassifier(n_estimators=10000)
+    model = BaggingClassifier(n_estimators=10000)
     # model = AdaBoostClassifier(n_estimators=100)
     # model = GradientBoostingClassifier(n_estimators=800, learning_rate=0.01, max_depth=4, subsample=0.7, random_state=1)
     # model = GradientBoostingClassifier(n_estimators=100, learning_rate=0.01, max_depth=1, subsample=1, random_state=1)
-    model = KNeighborsClassifier(n_neighbors=13)
+    # model = KNeighborsClassifier(n_neighbors=13)
     model.fit(x_train, y_train)
     #
     x_test = test_data.to_numpy()

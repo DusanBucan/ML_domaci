@@ -27,3 +27,6 @@ KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='minkowski',
            weights='uniform')
 0.8315939278937381
 isto je i za svm
+
+GMM {'covariance_type': 'diag', 'init_params': 'random', 'max_iter': 10000, 'n_components': 4, 'n_init': 1}
+0.7580645161290323 na krosu kada pca ima 4 komponente
