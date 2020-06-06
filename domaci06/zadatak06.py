@@ -279,12 +279,14 @@ if __name__ == '__main__':
         test_data[col], _ = standard_scaler(test_data, col, scaler)
 
     # # PCA
-    pca = PCA(svd_solver='full',n_components=5, copy=True)
+    pca = PCA(svd_solver='full',n_components=7, copy=True)
     pca.fit(train_data)
     # print(pca.explained_variance_ratio_)
     # print(sum(pca.explained_variance_ratio_[0:7]))
 
     # sa 7 osa se zadrzi 97.5% varijanse
+
+    # sa 5 ili 7 dobija isti score na cross, oko 0.80, izvacen je years
 
 
     #
