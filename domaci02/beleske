@@ -1,9 +1,52 @@
-37070.17562363442 ---> kada ne radis Z-score za pol i za oblast i koristis SVA obelezja
-	===> treba se uveriti da zvanje ima NORMLANU RASPODELU....
+1. obelezja da se svedu na isti range
+    MIN-MAX normalizacijom su se sva obelezja svela BLIZU na range 0-1 (MOZE BOLJE)
+        ==> da li koristiti za zvanje?
 
-54682.824399021476 ---> kada NE RADIS Z-score ni za jedno od kategorijalnih i koristis SVA obelezja
+    ===> DA LI SMO SE ZEZNULI, da li OBELEZJA IMAJU NORMALNU RASPODELU???
 
 
+4. NIJE UJEDNACEN BROJ OPSERVACIJA
+
+    npr.:
+        a. mnogo vise muskaraca nego zena
+        b. mnogo vise profesora nego ostalih
+        c.
+
+
+2. da se uklone outlieri
+    ===> IMA KOD PROFESORA 1 ---> to pogotovo utice kad se KORISTI MIN-MAX NORMALIZACIJA
+    ===> GODINE OBE IMAJU OUTLIER-e
+
+    ===> KAKO znati da bas je ZBOG te osobine OUTLIER..
+        ---> msm veroatno ako su ostale osobine u range i
+            onda ta jedna odskace bas
+
+
+
+
+3. da se malo fineTune kategorijalna
+    ===> za ZVANJE treba da bude 0,1,2 ---> sa tim da AssocProf i AssProf treba da budu SLICNIJI!!!!
+    ===> POL NIJE ONE-HOT-ENCODING ---> JER REALNO MUSKACRI IMAJU VECE PLATE
+    ===> OBLAST MOZE BITI ONE-HOT-ENCODING jer je POPRILICNO UJEDNACENO sto se tice PLATE
+
+
+
+4. da se vide da li su sva obelezja vazna sa Lasso i onda da se pusta OLS
+
+    ===> neka normlizacija ostane kakva je sad.
+    ===> outlieri isto
+
+7. unakrsna validacija i Ridge?
+    video sam tamo nesto
+    odrediti lambda i alpha
+
+
+5. da se proba ELASTIC_NET
+
+6. probabilisticke metode da se probaju
+
+
+=======================  REZULTATI =======================
 
 
 28500 ---> mora da padne ispod ovog.
